@@ -1,0 +1,295 @@
+package templates
+
+import (
+	"tango-gestionale/models"
+)
+
+templ LoginPage(errMsg string) {
+	<div class="min-h-screen bg-gradient-to-br from-dark-navy via-dark-navy to-black flex items-center justify-center px-4">
+		<div class="w-full max-w-md">
+			<!-- Decorative gold line above -->
+			<div class="flex items-center justify-center mb-8">
+				<div class="h-1 bg-gradient-to-r from-gold via-gold-light to-gold w-full max-w-xs"></div>
+			</div>
+
+			<!-- Main card with Art Deco style -->
+			<div class="bg-dark-navy border-4 border-gold rounded-lg shadow-2xl p-8">
+				<!-- Logo and Title -->
+				<div class="text-center mb-8">
+					<div class="inline-block mb-4">
+						<svg class="w-16 h-16 text-gold" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+						</svg>
+					</div>
+					<h1 class="text-4xl font-black text-gold mb-2 tracking-widest">TANGOBAR</h1>
+					<div class="flex items-center justify-center gap-3">
+						<div class="h-px w-8 bg-gold"></div>
+						<p class="text-gold-light uppercase text-sm tracking-widest font-semibold">Gestionale</p>
+						<div class="h-px w-8 bg-gold"></div>
+					</div>
+				</div>
+
+				<!-- Decorative divider -->
+				<div class="border-b-2 border-gold mb-8"></div>
+
+				<!-- Error message -->
+				if errMsg != "" {
+					<div class="bg-red-100 border-2 border-red-600 rounded-lg p-4 mb-6">
+						<p class="text-red-800 font-semibold text-center">{ errMsg }</p>
+					</div>
+				}
+
+				<!-- Login form -->
+				<form method="POST" action="/login" class="space-y-6">
+					<div>
+						<label for="username" class="block text-gold font-bold uppercase text-sm mb-3 tracking-wide">
+							Utente
+						</label>
+						<input
+							type="text"
+							id="username"
+							name="username"
+							class="w-full px-4 py-3 bg-light-gold border-2 border-gold rounded-lg text-dark-navy font-semibold focus:outline-none focus:ring-2 focus:ring-gold-light focus:bg-white transition"
+							placeholder="Inserisci il tuo username"
+							required
+							autofocus
+						/>
+					</div>
+
+					<div>
+						<label for="password" class="block text-gold font-bold uppercase text-sm mb-3 tracking-wide">
+							Password
+						</label>
+						<input
+							type="password"
+							id="password"
+							name="password"
+							class="w-full px-4 py-3 bg-light-gold border-2 border-gold rounded-lg text-dark-navy font-semibold focus:outline-none focus:ring-2 focus:ring-gold-light focus:bg-white transition"
+							placeholder="Inserisci la tua password"
+							required
+						/>
+					</div>
+
+					<!-- Submit button with Art Deco styling -->
+					<button
+						type="submit"
+						class="w-full bg-gradient-to-r from-gold to-gold-light text-dark-navy font-black uppercase py-3 rounded-lg mt-8 hover:shadow-lg transition transform hover:scale-105 active:scale-95 tracking-wider text-lg"
+					>
+						Accedi
+					</button>
+				</form>
+
+				<!-- Decorative footer -->
+				<div class="border-t-2 border-gold mt-8 pt-6 text-center">
+					<p class="text-gold-light text-xs uppercase tracking-widest">Accedi per continuare</p>
+				</div>
+			</div>
+
+			<!-- Decorative gold line below -->
+			<div class="flex items-center justify-center mt-8">
+				<div class="h-1 bg-gradient-to-r from-gold via-gold-light to-gold w-full max-w-xs"></div>
+			</div>
+		</div>
+	</div>
+}
+
+templ DashboardPage(stats map[string]interface{}) {
+	<div class="container mx-auto px-4 py-12">
+		<!-- Welcome section -->
+		<div class="mb-12">
+			<div class="relative">
+				<div class="absolute inset-0 bg-gradient-to-r from-gold via-transparent to-gold-light h-1"></div>
+				<h1 class="text-5xl font-black text-dark-navy mb-2 tracking-wider">TANGOBAR</h1>
+				<div class="flex items-center gap-3 mt-4 mb-8">
+					<div class="h-1 w-12 bg-gold"></div>
+					<p class="text-gold-light font-semibold uppercase text-sm tracking-widest">Gestionale Scolastico</p>
+					<div class="h-1 w-12 bg-gold"></div>
+				</div>
+			</div>
+			<p class="text-gray-700 text-lg">Benvenuto nel sistema di gestione della scuola di tango</p>
+		</div>
+
+		<!-- Quick stats grid -->
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+			<!-- Soci card -->
+			<div class="bg-white rounded-lg shadow-lg border-t-4 border-gold p-6 hover:shadow-xl transition">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Soci</p>
+						<p class="text-4xl font-black text-dark-navy mt-2">
+							if count, ok := stats["total_soci"].(int); ok {
+								{ count }
+							}
+						</p>
+					</div>
+					<div class="bg-light-gold p-4 rounded-lg">
+						<svg class="w-8 h-8 text-gold" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+						</svg>
+					</div>
+				</div>
+			</div>
+
+			<!-- Tessere in scadenza card -->
+			<div class="bg-white rounded-lg shadow-lg border-t-4 border-red-500 p-6 hover:shadow-xl transition">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Tessere Scadenza</p>
+						<p class="text-4xl font-black text-red-600 mt-2">
+							if count, ok := stats["tessere_scadenza"].(int); ok {
+								{ count }
+							}
+						</p>
+					</div>
+					<div class="bg-red-50 p-4 rounded-lg">
+						<svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+						</svg>
+					</div>
+				</div>
+			</div>
+
+			<!-- Prossime lezioni card -->
+			<div class="bg-white rounded-lg shadow-lg border-t-4 border-blue-500 p-6 hover:shadow-xl transition">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Lezioni Prossime</p>
+						<p class="text-4xl font-black text-blue-600 mt-2">
+							if count, ok := stats["lezioni_prossime"].(int); ok {
+								{ count }
+							}
+						</p>
+					</div>
+					<div class="bg-blue-50 p-4 rounded-lg">
+						<svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7h-3V9h3v3zm4 0h-3V9h3v3zM8 9v3H5V9h3z"/>
+						</svg>
+					</div>
+				</div>
+			</div>
+
+			<!-- Inventory status card -->
+			<div class="bg-white rounded-lg shadow-lg border-t-4 border-amber-500 p-6 hover:shadow-xl transition">
+				<div class="flex items-center justify-between">
+					<div>
+						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Magazzino Basso</p>
+						<p class="text-4xl font-black text-amber-600 mt-2">
+							if count, ok := stats["inventory_warning"].(int); ok {
+								{ count }
+							}
+						</p>
+					</div>
+					<div class="bg-amber-50 p-4 rounded-lg">
+						<svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M21 16v-5h-3V4c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v7H3v5h2v5c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-5h2zm-5-10H8V5h8v1z"/>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Quick links section -->
+		<div class="mb-12">
+			<h2 class="text-2xl font-bold text-dark-navy mb-6 flex items-center gap-3">
+				<div class="w-2 h-8 bg-gold"></div>
+				Accesso Rapido
+			</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<!-- Soci link -->
+				<a href="/soci" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-gold p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-light-gold p-3 rounded-lg">
+							<svg class="w-6 h-6 text-gold" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Soci</h3>
+							<p class="text-sm text-gray-600">Gestisci i soci</p>
+						</div>
+					</div>
+				</a>
+
+				<!-- Lezioni link -->
+				<a href="/lezioni" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-blue-500 p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-blue-50 p-3 rounded-lg">
+							<svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7h-3V9h3v3zm4 0h-3V9h3v3zM8 9v3H5V9h3z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Lezioni</h3>
+							<p class="text-sm text-gray-600">Pianifica le lezioni</p>
+						</div>
+					</div>
+				</a>
+
+				<!-- Fatture link -->
+				<a href="/fatture" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-green-500 p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-green-50 p-3 rounded-lg">
+							<svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Fatture</h3>
+							<p class="text-sm text-gray-600">Gestisci le fatture</p>
+						</div>
+					</div>
+				</a>
+
+				<!-- Bar link -->
+				<a href="/bar" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-amber-500 p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-amber-50 p-3 rounded-lg">
+							<svg class="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M21 16v-5h-3V4c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v7H3v5h2v5c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-5h2zm-5-10H8V5h8v1z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Inventario Bar</h3>
+							<p class="text-sm text-gray-600">Gestisci il magazzino</p>
+						</div>
+					</div>
+				</a>
+
+				<!-- Abbonamenti link -->
+				<a href="/abbonamenti" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-purple-500 p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-purple-50 p-3 rounded-lg">
+							<svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M21 5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5zm-2 0H5v4h14V5zm0 14H5v-8h14v8z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Abbonamenti</h3>
+							<p class="text-sm text-gray-600">Gestisci gli abbonamenti</p>
+						</div>
+					</div>
+				</a>
+
+				<!-- Profilo link -->
+				<a href="/profile" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-gray-500 p-6 transition transform hover:-translate-y-1">
+					<div class="flex items-center gap-4">
+						<div class="bg-gray-100 p-3 rounded-lg">
+							<svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+								<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+							</svg>
+						</div>
+						<div>
+							<h3 class="font-bold text-dark-navy">Profilo</h3>
+							<p class="text-sm text-gray-600">Il tuo account</p>
+						</div>
+					</div>
+				</a>
+			</div>
+		</div>
+
+		<!-- Footer decorative element -->
+		<div class="border-t-2 border-gold pt-8 text-center">
+			<p class="text-gray-600 text-sm uppercase tracking-widest">Sistema di Gestione TangoBar</p>
+		</div>
+	</div>
+}

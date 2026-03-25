@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  gestionale:
+    build: .
+    container_name: tango-gestionale
+    restart: unless-stopped
+    environment:
+      SESSION_KEY: ${SESSION_KEY:-cambia-questa-chiave}
+      DB_PATH: /app/data/gestionale.db
+      PDF_PATH: /app/data/pdf
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "127.0.0.1:8090:8080"

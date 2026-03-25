@@ -1,0 +1,322 @@
+package templates
+
+import (
+	"tango-gestionale/models"
+	"strconv"
+	"fmt"
+	"time"
+)
+
+templ TesserePage(tessere []models.Tessera) {
+	<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-8">
+		<div class="max-w-7xl mx-auto">
+			<!-- Header -->
+			<div class="mb-8">
+				<h1 class="text-4xl font-bold text-gold-400 mb-2">Tessere</h1>
+				<p class="text-gray-400">Gestisci le tessere dei soci</p>
+			</div>
+
+			<!-- Filter and Actions Bar -->
+			<div class="mb-6 flex gap-4">
+				<button
+					hx-get="/tessere?filter=scadenza"
+					hx-target="#lista-tessere"
+					class="px-6 py-2 border-2 border-gold-400 text-gold-400 hover:bg-gold-400 hover:text-gray-900 font-semibold transition"
+				>
+					⚠ In scadenza (30 giorni)
+				</button>
+				<button
+					hx-get="/tessere"
+					hx-target="#lista-tessere"
+					class="px-6 py-2 border-2 border-gray-500 text-gray-300 hover:bg-gray-500 hover:text-white font-semibold transition"
+				>
+					Mostra tutte
+				</button>
+				<div class="flex-1"></div>
+				<button
+					hx-get="/tessere/nuova"
+					hx-target="#modal"
+					class="px-6 py-2 border-2 border-gold-400 text-gold-400 hover:bg-gold-400 hover:text-gray-900 font-semibold transition"
+				>
+					+ Nuova Tessera
+				</button>
+			</div>
+
+			<!-- Table -->
+			<div class="border-2 border-gold-400 bg-gray-800/50 overflow-hidden">
+				<table class="w-full">
+					<thead class="bg-gray-900 border-b-2 border-gold-400">
+						<tr>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Socio</th>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Tipo</th>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Emessa il</th>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Valida fino</th>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Importo</th>
+							<th class="px-6 py-4 text-left text-gold-400 font-semibold">Pagato</th>
+							<th class="px-6 py-4 text-center text-gold-400 font-semibold">Azioni</th>
+						</tr>
+					</thead>
+					<tbody id="lista-tessere" class="divide-y divide-gray-700">
+						@TesseraTabella(tessere)
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+}
+
+templ TesseraTabella(tessere []models.Tessera) {
+	for _, tessera := range tessere {
+		<tr class="hover:bg-gray-700/50 transition">
+			<td class="px-6 py-4 text-white">
+				<a href={ templ.SafeURL("/soci/" + strconv.FormatInt(tessera.SocioID, 10)) } class="text-gold-400 hover:underline">
+					{ tessera.SocioNome } { tessera.SocioCognome }
+				</a>
+			</td>
+			<td class="px-6 py-4">
+				<span class={ tipoTesseraBadgeClass(tessera.Tipo) }>
+					{ tessera.Tipo }
+				</span>
+			</td>
+			<td class="px-6 py-4 text-gray-300">{ formatDate(tessera.EmessaIl) }</td>
+			<td class="px-6 py-4 text-gray-300">{ formatDate(tessera.ValidaFino) }</td>
+			<td class="px-6 py-4 text-white font-semibold">{ formatMoney(tessera.Importo) }</td>
+			<td class="px-6 py-4">
+				if tessera.Pagato {
+					<span class="px-3 py-1 bg-green-900/50 text-green-400 border border-green-400 text-xs font-semibold">Pagato</span>
+				} else {
+					<span class="px-3 py-1 bg-red-900/50 text-red-400 border border-red-400 text-xs font-semibold">In sospeso</span>
+				}
+			</td>
+			<td class="px-6 py-4 text-center flex gap-2 justify-center">
+				<button
+					hx-get={ "/tessere/" + strconv.FormatInt(tessera.ID, 10) + "/rinnova" }
+					hx-target="#modal"
+					class="px-3 py-1 text-sm border border-gold-400 text-gold-400 hover:bg-gold-400 hover:text-gray-900 transition font-semibold"
+				>
+					Rinnova
+				</button>
+				<button
+					hx-delete={ "/tessere/" + strconv.FormatInt(tessera.ID, 10) }
+					hx-confirm="Sei sicuro di voler eliminare questa tessera?"
+					hx-target="closest tr"
+					hx-swap="outerHTML swap:1s"
+					class="px-3 py-1 text-sm border border-red-400 text-red-400 hover:bg-red-400 hover:text-gray-900 transition font-semibold"
+				>
+					Elimina
+				</button>
+			</td>
+		</tr>
+	}
+}
+
+templ TesseraForm(socioID int64, socioNome string) {
+	<div class="bg-gray-800 border-2 border-gold-400 p-8">
+		<h2 class="text-2xl font-bold text-gold-400 mb-6">Nuova Tessera</h2>
+		<form hx-post="/tessere" hx-target="closest dialog" hx-swap="closeDialog">
+			<input type="hidden" name="socio_id" value={ strconv.FormatInt(socioID, 10) } />
+
+			<div class="space-y-6">
+				<!-- Socio Info -->
+				<div class="p-4 bg-gray-700/50 border border-gold-400/50 rounded">
+					<p class="text-gray-400 text-sm">Per il socio</p>
+					<p class="text-white font-semibold text-lg">{ socioNome }</p>
+				</div>
+
+				<!-- Tipo Tessera -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Tipo Tessera</label>
+					<select
+						name="tipo"
+						required
+						class="w-full bg-gray-700 text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-3 py-2 transition"
+					>
+						<option value="">-- Seleziona tipo --</option>
+						<option value="base">Base</option>
+						<option value="premium">Premium</option>
+						<option value="annuale">Annuale</option>
+					</select>
+				</div>
+
+				<!-- Importo -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Importo</label>
+					<div class="flex items-center">
+						<span class="text-white mr-2">€</span>
+						<input
+							type="number"
+							name="importo"
+							step="0.01"
+							min="0"
+							required
+							class="flex-1 bg-transparent text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-2 py-1 transition"
+							placeholder="0.00"
+						/>
+					</div>
+				</div>
+
+				<!-- Valida fino -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Valida fino a</label>
+					<input
+						type="date"
+						name="valida_fino"
+						required
+						class="w-full bg-transparent text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-2 py-1 transition"
+					/>
+				</div>
+
+				<!-- Pagato -->
+				<div class="flex items-center gap-3">
+					<input
+						type="checkbox"
+						name="pagato"
+						id="pagato"
+						class="w-4 h-4 bg-gray-700 border border-gold-400 accent-gold-400"
+					/>
+					<label for="pagato" class="text-white font-semibold cursor-pointer">Pagato</label>
+				</div>
+			</div>
+
+			<div class="flex gap-4 pt-6">
+				<button type="submit" class="flex-1 py-2 border-2 border-gold-400 text-gold-400 hover:bg-gold-400 hover:text-gray-900 font-semibold transition">
+					Crea Tessera
+				</button>
+				<button
+					type="button"
+					onclick="this.closest('dialog').close()"
+					class="flex-1 py-2 border-2 border-gray-500 text-gray-300 hover:bg-gray-500 hover:text-white font-semibold transition"
+				>
+					Annulla
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+templ TesseraRinnovo(tessera models.Tessera) {
+	<div class="bg-gray-800 border-2 border-gold-400 p-8">
+		<h2 class="text-2xl font-bold text-gold-400 mb-6">Rinnova Tessera</h2>
+		<form hx-post={ "/tessere/" + strconv.FormatInt(tessera.ID, 10) + "/rinnova" } hx-target="closest dialog" hx-swap="closeDialog">
+			<div class="space-y-6">
+				<!-- Socio Info -->
+				<div class="p-4 bg-gray-700/50 border border-gold-400/50 rounded">
+					<p class="text-gray-400 text-sm">Per il socio</p>
+					<p class="text-white font-semibold text-lg">{ tessera.SocioNome } { tessera.SocioCognome }</p>
+				</div>
+
+				<!-- Tessera Precedente Info -->
+				<div class="grid grid-cols-2 gap-4 p-4 bg-gray-700/50 border border-gold-400/50 rounded">
+					<div>
+						<p class="text-gray-400 text-sm">Tipo precedente</p>
+						<p class="text-white font-semibold">{ tessera.Tipo }</p>
+					</div>
+					<div>
+						<p class="text-gray-400 text-sm">Valida fino a</p>
+						<p class="text-white font-semibold">{ formatDate(tessera.ValidaFino) }</p>
+					</div>
+				</div>
+
+				<!-- Tipo Tessera -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Tipo Tessera (nuovo)</label>
+					<select
+						name="tipo"
+						required
+						class="w-full bg-gray-700 text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-3 py-2 transition"
+					>
+						<option value={ tessera.Tipo } selected>{ tessera.Tipo }</option>
+						<option value="base">Base</option>
+						<option value="premium">Premium</option>
+						<option value="annuale">Annuale</option>
+					</select>
+				</div>
+
+				<!-- Importo -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Importo</label>
+					<div class="flex items-center">
+						<span class="text-white mr-2">€</span>
+						<input
+							type="number"
+							name="importo"
+							step="0.01"
+							min="0"
+							value={ fmt.Sprintf("%.2f", tessera.Importo) }
+							required
+							class="flex-1 bg-transparent text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-2 py-1 transition"
+							placeholder="0.00"
+						/>
+					</div>
+				</div>
+
+				<!-- Valida fino -->
+				<div>
+					<label class="block text-gold-400 font-semibold mb-2">Valida fino a (nuovo)</label>
+					<input
+						type="date"
+						name="valida_fino"
+						value={ addMonths(tessera.ValidaFino, 12).Format("2006-01-02") }
+						required
+						class="w-full bg-transparent text-white border-b-2 border-gold-400 focus:outline-none focus:border-gold-500 px-2 py-1 transition"
+					/>
+				</div>
+
+				<!-- Pagato -->
+				<div class="flex items-center gap-3">
+					<input
+						type="checkbox"
+						name="pagato"
+						id="pagato_rinnovo"
+						class="w-4 h-4 bg-gray-700 border border-gold-400 accent-gold-400"
+						if tessera.Pagato {
+							checked
+						}
+					/>
+					<label for="pagato_rinnovo" class="text-white font-semibold cursor-pointer">Pagato</label>
+				</div>
+			</div>
+
+			<div class="flex gap-4 pt-6">
+				<button type="submit" class="flex-1 py-2 border-2 border-gold-400 text-gold-400 hover:bg-gold-400 hover:text-gray-900 font-semibold transition">
+					Rinnova Tessera
+				</button>
+				<button
+					type="button"
+					onclick="this.closest('dialog').close()"
+					class="flex-1 py-2 border-2 border-gray-500 text-gray-300 hover:bg-gray-500 hover:text-white font-semibold transition"
+				>
+					Annulla
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// Helper functions
+
+func formatDate(t time.Time) string {
+	return t.Format("02/01/2006")
+}
+
+func formatMoney(amount float64) string {
+	return fmt.Sprintf("€ %.2f", amount)
+}
+
+func tipoTesseraBadgeClass(tipo string) string {
+	baseClass := "px-3 py-1 text-xs font-semibold border"
+	switch tipo {
+	case "base":
+		return baseClass + " bg-blue-900/50 text-blue-400 border-blue-400"
+	case "premium":
+		return baseClass + " bg-gold-900/50 text-gold-400 border-gold-400"
+	case "annuale":
+		return baseClass + " bg-purple-900/50 text-purple-400 border-purple-400"
+	default:
+		return baseClass + " bg-gray-700/50 text-gray-300 border-gray-500"
+	}
+}
+
+func addMonths(t time.Time, months int) time.Time {
+	return t.AddDate(0, months, 0)
+}
