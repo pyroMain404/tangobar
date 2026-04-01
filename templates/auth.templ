@@ -1,7 +1,7 @@
 package templates
 
 import (
-	"tango-gestionale/models"
+	"fmt"
 )
 
 templ LoginPage(errMsg string) {
@@ -118,7 +118,7 @@ templ DashboardPage(stats map[string]interface{}) {
 						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Soci</p>
 						<p class="text-4xl font-black text-dark-navy mt-2">
 							if count, ok := stats["total_soci"].(int); ok {
-								{ count }
+								{ fmt.Sprint(count) }
 							}
 						</p>
 					</div>
@@ -137,7 +137,7 @@ templ DashboardPage(stats map[string]interface{}) {
 						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Tessere Scadenza</p>
 						<p class="text-4xl font-black text-red-600 mt-2">
 							if count, ok := stats["tessere_scadenza"].(int); ok {
-								{ count }
+								{ fmt.Sprint(count) }
 							}
 						</p>
 					</div>
@@ -156,7 +156,7 @@ templ DashboardPage(stats map[string]interface{}) {
 						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Lezioni Prossime</p>
 						<p class="text-4xl font-black text-blue-600 mt-2">
 							if count, ok := stats["lezioni_prossime"].(int); ok {
-								{ count }
+								{ fmt.Sprint(count) }
 							}
 						</p>
 					</div>
@@ -175,7 +175,7 @@ templ DashboardPage(stats map[string]interface{}) {
 						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Magazzino Basso</p>
 						<p class="text-4xl font-black text-amber-600 mt-2">
 							if count, ok := stats["inventory_warning"].(int); ok {
-								{ count }
+								{ fmt.Sprint(count) }
 							}
 						</p>
 					</div>
