@@ -172,7 +172,7 @@ func seedAdminUser(database *sql.DB) error {
 
 	// Insert admin user
 	_, err = database.Exec(
-		"INSERT INTO utenti (username, password) VALUES (?, ?)",
+		"INSERT INTO utenti (username, password_hash) VALUES (?, ?)",
 		"admin",
 		hashedPassword,
 	)
