@@ -33,9 +33,6 @@ WORKDIR /app
 # Copy binary from builder
 COPY --from=builder /build/gestionale ./
 
-# Copy assets folder from builder
-COPY --from=builder /build/assets ./assets
-
 # Create data volume directory
 RUN mkdir -p /app/data
 
