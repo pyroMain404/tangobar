@@ -17,7 +17,7 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 	// Create a new PDF with credit card dimensions
 	pdf := &gopdf.GoPdf{}
 	pdf.Start(gopdf.Config{
-		PageSize: &gopdf.Rect{
+		PageSize: gopdf.Rect{
 			W: cardWidth,
 			H: cardHeight,
 		},
@@ -37,7 +37,6 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 	if _, err := os.Stat(regularFontPath); err == nil {
 		err = pdf.AddTTFFont(regularFontName, regularFontPath)
 		if err != nil {
-			// Fall back to Helvetica
 			regularFontName = "Helvetica"
 		}
 	} else {
@@ -47,7 +46,6 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 	if _, err := os.Stat(boldFontPath); err == nil {
 		err = pdf.AddTTFFont(boldFontName, boldFontPath)
 		if err != nil {
-			// Fall back to Helvetica
 			boldFontName = "Helvetica"
 		}
 	} else {
@@ -61,7 +59,6 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 	// Logo at top-left if file exists
 	logoPath := "assets/logo.png"
 	if _, err := os.Stat(logoPath); err == nil {
-		// Image dimensions for top-left placement
 		imageWidth := 12.0
 		imageHeight := 10.0
 		imageX := 5.0
@@ -71,7 +68,6 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 			W: imageWidth,
 			H: imageHeight,
 		})
-		// If image fails to load, continue without it
 		_ = err
 	}
 
@@ -83,7 +79,9 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 	if err != nil {
 		pdf.SetFont("Helvetica", "", 10)
 	}
-	pdf.Text(5, 8, "TANGOBAR")
+	pdf.SetX(5)
+	pdf.SetY(8)
+	pdf.Text("TANGOBAR")
 
 	// Socio name in white, bold, 10pt
 	err = pdf.SetFont(boldFontName, "", 10)
@@ -91,29 +89,31 @@ func GeneraTessera(s models.Socio, t models.Tessera) ([]byte, error) {
 		pdf.SetFont("Helvetica", "", 10)
 	}
 	fullName := fmt.Sprintf("%s %s", s.Nome, s.Cognome)
-	pdf.Text(5, 18, fullName)
+	pdf.SetX(5)
+	pdf.SetY(18)
+	pdf.Text(fullName)
 
 	// "Tessera: {tipo}" in white, regular, 8pt
 	err = pdf.SetFont(regularFontName, "", 8)
 	if err != nil {
 		pdf.SetFont("Helvetica", "", 8)
 	}
-	pdf.Text(5, 28, fmt.Sprintf("Tessera: %s", t.Tipo))
+	pdf.SetX(5)
+	pdf.SetY(28)
+	pdf.Text(fmt.Sprintf("Tessera: %s", t.Tipo))
 
 	// "Valida fino: MM/YYYY" in white, regular, 8pt
-	validaText := fmt.Sprintf("Valida fino: %s", t.ValidaFino.Format("01/2006"))
-	pdf.Text(5, 35, validaText)
+	pdf.SetX(5)
+	pdf.SetY(35)
+	pdf.Text(fmt.Sprintf("Valida fino: %s", t.ValidaFino.Format("01/2006")))
 
 	// Gold accent line (RGB 255, 215, 0) - thin horizontal line near bottom
-	pdf.SetDrawColor(255, 215, 0)
+	pdf.SetStrokeColor(255, 215, 0)
 	pdf.SetLineWidth(0.5)
 	pdf.Line(5, 45, cardWidth-5, 45)
 
 	// Get PDF bytes
-	buf, err := pdf.GetBytesPdf()
-	if err != nil {
-		return nil, err
-	}
+	buf := pdf.GetBytesPdf()
 
 	return buf, nil
 }

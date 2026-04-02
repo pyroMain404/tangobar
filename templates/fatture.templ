@@ -56,18 +56,18 @@ templ FatturePage(fatture []models.Fattura) {
 								</td>
 								<td class="px-6 py-4 text-center">
 									<div class="flex gap-2 justify-center">
-										<a href={ templ.SafeURL("/fatture/" + strconv.Itoa(f.ID)) } class="text-gold hover:text-gold-dark font-semibold transition">
+										<a href={ templ.SafeURL("/fatture/" + strconv.FormatInt(f.ID, 10)) } class="text-gold hover:text-gold-dark font-semibold transition">
 											Dettagli
 										</a>
 										<button
-											hx-post={ "/fatture/" + strconv.Itoa(f.ID) + "/toggle-pagata" }
+											hx-post={ "/fatture/" + strconv.FormatInt(f.ID, 10) + "/toggle-pagata" }
 											hx-target="closest tr"
 											hx-swap="outerHTML"
 											class="text-blue-600 hover:text-blue-800 font-semibold transition"
 										>
 											Toggle
 										</button>
-										<a href={ templ.SafeURL("/fatture/" + strconv.Itoa(f.ID) + "/pdf") } class="text-gray-600 hover:text-gray-800 font-semibold transition" target="_blank">
+										<a href={ templ.SafeURL("/fatture/" + strconv.FormatInt(f.ID, 10) + "/pdf") } class="text-gray-600 hover:text-gray-800 font-semibold transition" target="_blank">
 											PDF
 										</a>
 									</div>
@@ -119,10 +119,10 @@ templ FatturaDettaglio(fattura models.Fattura) {
 									{ strconv.FormatFloat(riga.Quantita, 'f', 2, 64) }
 								</td>
 								<td class="px-6 py-4 text-right">
-									€ { fmt.Sprintf("%.2f", riga.PrezzoUnitario) }
+									€ { fmt.Sprintf("%.2f", riga.PrezzoUnit) }
 								</td>
 								<td class="px-6 py-4 text-right font-semibold">
-									€ { fmt.Sprintf("%.2f", riga.Totale()) }
+									€ { fmt.Sprintf("%.2f", riga.Totale) }
 								</td>
 							</tr>
 						}
@@ -148,11 +148,11 @@ templ FatturaDettaglio(fattura models.Fattura) {
 			</div>
 
 			<div class="flex gap-4 justify-center">
-				<a href={ templ.SafeURL("/fatture/" + strconv.Itoa(fattura.ID) + "/pdf") } target="_blank" class="bg-gold hover:bg-gold-dark text-dark-navy px-6 py-2 rounded-lg font-semibold transition">
+				<a href={ templ.SafeURL("/fatture/" + strconv.FormatInt(fattura.ID, 10) + "/pdf") } target="_blank" class="bg-gold hover:bg-gold-dark text-dark-navy px-6 py-2 rounded-lg font-semibold transition">
 					Scarica PDF
 				</a>
 				<button
-					hx-post={ "/fatture/" + strconv.Itoa(fattura.ID) + "/toggle-pagata" }
+					hx-post={ "/fatture/" + strconv.FormatInt(fattura.ID, 10) + "/toggle-pagata" }
 					hx-target="closest .flex"
 					hx-swap="outerHTML"
 					class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
@@ -164,7 +164,7 @@ templ FatturaDettaglio(fattura models.Fattura) {
 						Pagata
 					}
 				</button>
-				<a href={ templ.SafeURL("/fatture/" + strconv.Itoa(fattura.ID) + "/edit") } class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+				<a href={ templ.SafeURL("/fatture/" + strconv.FormatInt(fattura.ID, 10) + "/edit") } class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition">
 					Modifica
 				</a>
 			</div>
@@ -191,7 +191,7 @@ templ FatturaForm(fattura *models.Fattura, soci []models.Socio) {
 				if fattura.ID == 0 {
 					hx-post="/fatture"
 				} else {
-					hx-put={ "/fatture/" + strconv.Itoa(fattura.ID) }
+					hx-put={ "/fatture/" + strconv.FormatInt(fattura.ID, 10) }
 				}
 				hx-swap="redirect"
 				class="space-y-6"
@@ -209,7 +209,7 @@ templ FatturaForm(fattura *models.Fattura, soci []models.Socio) {
 						>
 							<option value="">-- Seleziona Socio --</option>
 							for _, socio := range soci {
-								<option value={ strconv.Itoa(socio.ID) } selected?={ fattura.SocioID != nil && *fattura.SocioID == socio.ID }>
+								<option value={ strconv.FormatInt(socio.ID, 10) } selected?={ fattura.SocioID != nil && *fattura.SocioID == socio.ID }>
 									{ socio.Nome }
 								</option>
 							}
@@ -259,11 +259,11 @@ templ FatturaForm(fattura *models.Fattura, soci []models.Socio) {
 								<div class="riga-item grid grid-cols-12 gap-3 mb-4 p-4 bg-light-gold rounded-lg">
 									<input type="text" name={ "righe[" + strconv.Itoa(i) + "][descrizione]" } value={ riga.Descrizione } placeholder="Descrizione" class="col-span-5 px-3 py-2 border border-gold rounded focus:outline-none focus:ring-2 focus:ring-gold" />
 									<input type="number" name={ "righe[" + strconv.Itoa(i) + "][quantita]" } value={ strconv.FormatFloat(riga.Quantita, 'f', 2, 64) } placeholder="Qtà" step="0.01" class="col-span-2 px-3 py-2 border border-gold rounded focus:outline-none focus:ring-2 focus:ring-gold" />
-									<input type="number" name={ "righe[" + strconv.Itoa(i) + "][prezzo_unitario]" } value={ fmt.Sprintf("%.2f", riga.PrezzoUnitario) } placeholder="Prezzo Unit." step="0.01" class="col-span-2 px-3 py-2 border border-gold rounded focus:outline-none focus:ring-2 focus:ring-gold" />
+									<input type="number" name={ "righe[" + strconv.Itoa(i) + "][prezzo_unitario]" } value={ fmt.Sprintf("%.2f", riga.PrezzoUnit) } placeholder="Prezzo Unit." step="0.01" class="col-span-2 px-3 py-2 border border-gold rounded focus:outline-none focus:ring-2 focus:ring-gold" />
 									<button type="button" onclick="removeRiga(this)" class="col-span-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-semibold transition">
 										−
 									</button>
-									<input type="hidden" name={ "righe[" + strconv.Itoa(i) + "][totale]" } value={ fmt.Sprintf("%.2f", riga.Totale()) } />
+									<input type="hidden" name={ "righe[" + strconv.Itoa(i) + "][totale]" } value={ fmt.Sprintf("%.2f", riga.Totale) } />
 								</div>
 							}
 						}

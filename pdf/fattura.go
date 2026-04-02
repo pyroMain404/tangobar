@@ -34,7 +34,7 @@ func GeneraFattura(f models.Fattura) ([]byte, error) {
 	logoPath := "assets/logo.png"
 	if _, err := os.Stat(logoPath); err == nil {
 		logoCol = col.New(6).Add(image.NewFromFile(logoPath, props.Rect{
-			Width: 20, Height: 15,
+			Percent: 80,
 		}))
 	} else {
 		logoCol = col.New(6)
