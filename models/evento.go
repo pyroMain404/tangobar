@@ -3,12 +3,12 @@ package models
 import "time"
 
 type Evento struct {
-	ID         int64
-	Nome       string
-	DataOra    time.Time
-	Luogo      string
-	PrezzoBase float64
-	Note       string
+	ID          int64
+	Titolo      string
+	Descrizione string
+	DataOra     time.Time
+	Location    string
+	PrezzoBase  float64
 }
 
 type IngressoMilonga struct {

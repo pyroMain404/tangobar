@@ -98,15 +98,16 @@ func (h *Handler) DettaglioEvento(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var ingressi []models.Ingresso
+	var ingressi []models.IngressoMilonga
 	var totaleIncassato float64
 	for rows.Next() {
-		var ing models.Ingresso
+		var ing models.IngressoMilonga
+		var eventoID, socioID sql.NullInt64
 		var personaNome sql.NullString
 		err := rows.Scan(
 			&ing.ID,
-			&ing.EventoID,
-			&ing.SocioID,
+			&eventoID,
+			&socioID,
 			&ing.NomeOspite,
 			&ing.Importo,
 			&personaNome,
@@ -115,8 +116,16 @@ func (h *Handler) DettaglioEvento(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
+		if eventoID.Valid {
+			v := eventoID.Int64
+			ing.EventoID = &v
+		}
+		if socioID.Valid {
+			v := socioID.Int64
+			ing.SocioID = &v
+		}
 		if personaNome.Valid {
-			ing.PersonaNome = personaNome.String
+			ing.NomeSocio = personaNome.String
 		}
 		totaleIncassato += ing.Importo
 		ingressi = append(ingressi, ing)
@@ -318,15 +327,16 @@ func (h *Handler) RegistraIngresso(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var ingressi []models.Ingresso
+	var ingressi []models.IngressoMilonga
 	var totaleIncassato float64
 	for rows.Next() {
-		var ing models.Ingresso
+		var ing models.IngressoMilonga
+		var eventoID, socioID sql.NullInt64
 		var personaNome sql.NullString
 		err := rows.Scan(
 			&ing.ID,
-			&ing.EventoID,
-			&ing.SocioID,
+			&eventoID,
+			&socioID,
 			&ing.NomeOspite,
 			&ing.Importo,
 			&personaNome,
@@ -335,8 +345,16 @@ func (h *Handler) RegistraIngresso(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
+		if eventoID.Valid {
+			v := eventoID.Int64
+			ing.EventoID = &v
+		}
+		if socioID.Valid {
+			v := socioID.Int64
+			ing.SocioID = &v
+		}
 		if personaNome.Valid {
-			ing.PersonaNome = personaNome.String
+			ing.NomeSocio = personaNome.String
 		}
 		totaleIncassato += ing.Importo
 		ingressi = append(ingressi, ing)
@@ -398,15 +416,16 @@ func (h *Handler) RegistraIngressoOspite(w http.ResponseWriter, r *http.Request)
 	}
 	defer rows.Close()
 
-	var ingressi []models.Ingresso
+	var ingressi []models.IngressoMilonga
 	var totaleIncassato float64
 	for rows.Next() {
-		var ing models.Ingresso
+		var ing models.IngressoMilonga
+		var eventoID, socioID sql.NullInt64
 		var personaNome sql.NullString
 		err := rows.Scan(
 			&ing.ID,
-			&ing.EventoID,
-			&ing.SocioID,
+			&eventoID,
+			&socioID,
 			&ing.NomeOspite,
 			&ing.Importo,
 			&personaNome,
@@ -415,8 +434,16 @@ func (h *Handler) RegistraIngressoOspite(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
+		if eventoID.Valid {
+			v := eventoID.Int64
+			ing.EventoID = &v
+		}
+		if socioID.Valid {
+			v := socioID.Int64
+			ing.SocioID = &v
+		}
 		if personaNome.Valid {
-			ing.PersonaNome = personaNome.String
+			ing.NomeSocio = personaNome.String
 		}
 		totaleIncassato += ing.Importo
 		ingressi = append(ingressi, ing)
