@@ -26,16 +26,10 @@ func (h *Handler) ListaTessere(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	type TesseraWithSocio struct {
-		Tessera models.Tessera
-		Nome    string
-		Cognome string
-	}
-
-	var tessere []TesseraWithSocio
+	var tessere []models.Tessera
 	for rows.Next() {
-		var t TesseraWithSocio
-		err := rows.Scan(&t.Tessera.ID, &t.Tessera.SocioID, &t.Nome, &t.Cognome, &t.Tessera.Tipo, &t.Tessera.EmoissaIl, &t.Tessera.ValidaFino, &t.Tessera.Importo, &t.Tessera.Pagato, &t.Tessera.CreatedAt, &t.Tessera.UpdatedAt)
+		var t models.Tessera
+		err := rows.Scan(&t.ID, &t.SocioID, &t.NomeSocio, &t.CognomeSocio, &t.Tipo, &t.EmessaIl, &t.ValidaFino, &t.Importo, &t.Pagato, &t.CreatedAt, &t.UpdatedAt)
 		if err != nil {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
@@ -140,7 +134,7 @@ func (h *Handler) RinnovaTesseraForm(w http.ResponseWriter, r *http.Request) {
 		SELECT id, socio_id, tipo, emessa_il, valida_fino, importo, pagato, created_at, updated_at
 		FROM tessere
 		WHERE id = ?
-	`, id).Scan(&tessera.ID, &tessera.SocioID, &tessera.Tipo, &tessera.EmoissaIl, &tessera.ValidaFino, &tessera.Importo, &tessera.Pagato, &tessera.CreatedAt, &tessera.UpdatedAt)
+	`, id).Scan(&tessera.ID, &tessera.SocioID, &tessera.Tipo, &tessera.EmessaIl, &tessera.ValidaFino, &tessera.Importo, &tessera.Pagato, &tessera.CreatedAt, &tessera.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Tessera not found", http.StatusNotFound)
@@ -169,7 +163,7 @@ func (h *Handler) RinnovaTessera(w http.ResponseWriter, r *http.Request) {
 		SELECT id, socio_id, tipo, emessa_il, valida_fino, importo, pagato, created_at, updated_at
 		FROM tessere
 		WHERE id = ?
-	`, id).Scan(&oldTessera.ID, &oldTessera.SocioID, &oldTessera.Tipo, &oldTessera.EmoissaIl, &oldTessera.ValidaFino, &oldTessera.Importo, &oldTessera.Pagato, &oldTessera.CreatedAt, &oldTessera.UpdatedAt)
+	`, id).Scan(&oldTessera.ID, &oldTessera.SocioID, &oldTessera.Tipo, &oldTessera.EmessaIl, &oldTessera.ValidaFino, &oldTessera.Importo, &oldTessera.Pagato, &oldTessera.CreatedAt, &oldTessera.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Tessera not found", http.StatusNotFound)
@@ -264,7 +258,7 @@ func (h *Handler) StampaTessera(w http.ResponseWriter, r *http.Request) {
 		FROM tessere t
 		JOIN soci s ON t.socio_id = s.id
 		WHERE t.id = ?
-	`, id).Scan(&tessera.ID, &tessera.SocioID, &tessera.Tipo, &tessera.EmoissaIl, &tessera.ValidaFino, &tessera.Importo, &tessera.Pagato, &tessera.CreatedAt, &tessera.UpdatedAt,
+	`, id).Scan(&tessera.ID, &tessera.SocioID, &tessera.Tipo, &tessera.EmessaIl, &tessera.ValidaFino, &tessera.Importo, &tessera.Pagato, &tessera.CreatedAt, &tessera.UpdatedAt,
 		&socio.ID, &socio.Nome, &socio.Cognome, &socio.Email, &socio.Telefono, &socio.DataNascita, &socio.Note, &socio.CreatedAt, &socio.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {

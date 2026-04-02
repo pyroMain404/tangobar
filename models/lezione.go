@@ -14,10 +14,17 @@ type Lezione struct {
 }
 
 type Iscrizione struct {
-	ID           int64
-	SocioID      int64
-	LezioneID    int64
-	Pagato       bool
-	NomeSocio    string
-	CognomeSocio string
+	ID             int64
+	SocioID        int64
+	LezioneID      int64
+	Pagato         bool
+	NomeSocio      string
+	CognomeSocio   string
+	LezioneTitolo  string
+	DataLezione    time.Time
+	OraLezione     time.Time
+	InsegnanteName string
+	DataIscrizione time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

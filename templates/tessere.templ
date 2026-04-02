@@ -70,7 +70,7 @@ templ TesseraTabella(tessere []models.Tessera) {
 		<tr class="hover:bg-gray-700/50 transition">
 			<td class="px-6 py-4 text-white">
 				<a href={ templ.SafeURL("/soci/" + strconv.FormatInt(tessera.SocioID, 10)) } class="text-gold-400 hover:underline">
-					{ tessera.SocioNome } { tessera.SocioCognome }
+					{ tessera.NomeSocio } { tessera.CognomeSocio }
 				</a>
 			</td>
 			<td class="px-6 py-4">
@@ -202,7 +202,7 @@ templ TesseraRinnovo(tessera models.Tessera) {
 				<!-- Socio Info -->
 				<div class="p-4 bg-gray-700/50 border border-gold-400/50 rounded">
 					<p class="text-gray-400 text-sm">Per il socio</p>
-					<p class="text-white font-semibold text-lg">{ tessera.SocioNome } { tessera.SocioCognome }</p>
+					<p class="text-white font-semibold text-lg">{ tessera.NomeSocio } { tessera.CognomeSocio }</p>
 				</div>
 
 				<!-- Tessera Precedente Info -->

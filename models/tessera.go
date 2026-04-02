@@ -12,4 +12,6 @@ type Tessera struct {
 	Importo      float64
 	NomeSocio    string
 	CognomeSocio string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
