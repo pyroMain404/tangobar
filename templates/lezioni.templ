@@ -39,15 +39,15 @@ templ LezioniPage(lezioni []models.Lezione) {
 							</td>
 							<td class="px-6 py-4">{ lezione.Insegnante }</td>
 							<td class="px-6 py-4">{ formatDateTime(lezione.DataOra) }</td>
-							<td class="px-6 py-4">{ strconv.Itoa(lezione.Durata) } min</td>
+							<td class="px-6 py-4">{ strconv.Itoa(lezione.DurataMin) } min</td>
 							<td class="px-6 py-4">
-								if lezione.Iscritti >= lezione.MaxPosti {
+								if lezione.MaxPosti != nil && lezione.Iscritti >= *lezione.MaxPosti {
 									<span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-										{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(lezione.MaxPosti) } (FULL)
+										{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(*lezione.MaxPosti) } (FULL)
 									</span>
 								} else {
 									<span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
-										{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(lezione.MaxPosti) }
+										{ strconv.Itoa(lezione.Iscritti) }/{ maxPostiStr(lezione.MaxPosti) }
 									</span>
 								}
 							</td>
@@ -87,7 +87,7 @@ templ LezioneDettaglio(lezione models.Lezione, iscrizioni []models.Iscrizione) {
 						</div>
 						<div>
 							<p class="text-gray-600 text-sm">Durata</p>
-							<p class="text-xl font-semibold">{ strconv.Itoa(lezione.Durata) } minuti</p>
+							<p class="text-xl font-semibold">{ strconv.Itoa(lezione.DurataMin) } minuti</p>
 						</div>
 						<div>
 							<p class="text-gray-600 text-sm">Prezzo</p>
@@ -95,10 +95,10 @@ templ LezioneDettaglio(lezione models.Lezione, iscrizioni []models.Iscrizione) {
 						</div>
 						<div>
 							<p class="text-gray-600 text-sm">Disponibilità Posti</p>
-							if lezione.Iscritti >= lezione.MaxPosti {
-								<p class="text-xl font-semibold text-red-600">{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(lezione.MaxPosti) } (COMPLETO)</p>
+							if lezione.MaxPosti != nil && lezione.Iscritti >= *lezione.MaxPosti {
+								<p class="text-xl font-semibold text-red-600">{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(*lezione.MaxPosti) } (COMPLETO)</p>
 							} else {
-								<p class="text-xl font-semibold text-green-600">{ strconv.Itoa(lezione.Iscritti) }/{ strconv.Itoa(lezione.MaxPosti) }</p>
+								<p class="text-xl font-semibold text-green-600">{ strconv.Itoa(lezione.Iscritti) }/{ maxPostiStr(lezione.MaxPosti) }</p>
 							}
 						</div>
 					</div>
@@ -133,8 +133,8 @@ templ LezioneDettaglio(lezione models.Lezione, iscrizioni []models.Iscrizione) {
 								<tbody>
 									for _, iscr := range iscrizioni {
 										<tr class="border-b hover:bg-gray-50">
-											<td class="px-4 py-3">{ iscr.Socio.Nome }</td>
-											<td class="px-4 py-3">{ iscr.Socio.Cognome }</td>
+											<td class="px-4 py-3">{ iscr.NomeSocio }</td>
+											<td class="px-4 py-3">{ iscr.CognomeSocio }</td>
 											<td class="px-4 py-3 text-center">
 												if iscr.Pagato {
 													<span class="inline-block bg-green-200 text-green-800 px-2 py-1 rounded text-sm font-semibold">✓ Sì</span>
@@ -242,7 +242,7 @@ templ LezioneForm(lezione *models.Lezione) {
 							required
 							min="15"
 							if lezione != nil {
-								value={ strconv.Itoa(lezione.Durata) }
+								value={ strconv.Itoa(lezione.DurataMin) }
 							}
 							class="w-full px-4 py-2 border-2 border-amber-300 rounded focus:outline-none focus:border-amber-700"
 							placeholder="60"
@@ -259,8 +259,8 @@ templ LezioneForm(lezione *models.Lezione) {
 							name="max_posti"
 							required
 							min="1"
-							if lezione != nil {
-								value={ strconv.Itoa(lezione.MaxPosti) }
+							if lezione != nil && lezione.MaxPosti != nil {
+								value={ strconv.Itoa(*lezione.MaxPosti) }
 							}
 							class="w-full px-4 py-2 border-2 border-amber-300 rounded focus:outline-none focus:border-amber-700"
 							placeholder="20"
@@ -324,3 +324,9 @@ templ IscrizioneForm(lezioneID int64, soci []models.Socio) {
 	</form>
 }
 
+func maxPostiStr(p *int) string {
+	if p == nil {
+		return "∞"
+	}
+	return strconv.Itoa(*p)
+}
