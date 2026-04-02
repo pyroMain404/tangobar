@@ -30,7 +30,7 @@ func (h *Handler) ListaFatture(w http.ResponseWriter, r *http.Request) {
 	var fatture []models.Fattura
 	for rows.Next() {
 		var f models.Fattura
-		if err := rows.Scan(&f.ID, &f.Numero, &f.DataEmissione, &f.SocioID, &f.NomeCliente, &f.Totale, &f.Pagata, &f.PdfPath); err != nil {
+		if err := rows.Scan(&f.ID, &f.Numero, &f.DataEmissione, &f.SocioID, &f.NomeCliente, &f.Totale, &f.Pagata, &f.PDFPath); err != nil {
 			http.Error(w, "Errore nella lettura fatture", http.StatusInternalServerError)
 			return
 		}
@@ -50,7 +50,7 @@ func (h *Handler) DettaglioFattura(w http.ResponseWriter, r *http.Request) {
 		SELECT id, numero, data_emissione, socio_id, nome_cliente, totale, pagata, pdf_path
 		FROM fatture
 		WHERE id = ?
-	`, id).Scan(&fattura.ID, &fattura.Numero, &fattura.DataEmissione, &fattura.SocioID, &fattura.NomeCliente, &fattura.Totale, &fattura.Pagata, &fattura.PdfPath)
+	`, id).Scan(&fattura.ID, &fattura.Numero, &fattura.DataEmissione, &fattura.SocioID, &fattura.NomeCliente, &fattura.Totale, &fattura.Pagata, &fattura.PDFPath)
 
 	if err == sql.ErrNoRows {
 		http.NotFound(w, r)
@@ -151,10 +151,10 @@ func (h *Handler) CreaFattura(w http.ResponseWriter, r *http.Request) {
 		totale += rigaTotal
 
 		righe = append(righe, models.RigaFattura{
-			Descrizione:     descrizioni[i],
-			Quantita:        quantita,
-			PrezzoUnitario:  prezzoUnitario,
-			Totale:          rigaTotal,
+			Descrizione: descrizioni[i],
+			Quantita:    quantita,
+			PrezzoUnit:  prezzoUnitario,
+			Totale:      rigaTotal,
 		})
 	}
 
@@ -222,11 +222,16 @@ func (h *Handler) CreaFattura(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create PDF
+	var socioIDPtr *int64
+	if socioID.Valid {
+		v := socioID.Int64
+		socioIDPtr = &v
+	}
 	fattura := models.Fattura{
-		ID:            int(fatturaID),
+		ID:            fatturaID,
 		Numero:        numero,
 		DataEmissione: time.Now(),
-		SocioID:       socioID,
+		SocioID:       socioIDPtr,
 		NomeCliente:   nomeCliente,
 		Totale:        totale,
 		Righe:         righe,
@@ -340,11 +345,16 @@ func (h *Handler) DownloadFatturaPDF(w http.ResponseWriter, r *http.Request) {
 			righe = append(righe, riga)
 		}
 
+		var socioIDPtr2 *int64
+		if socioID.Valid {
+			v := socioID.Int64
+			socioIDPtr2 = &v
+		}
 		fattura := models.Fattura{
-			ID:            fatturaID,
+			ID:            int64(fatturaID),
 			Numero:        numero,
 			DataEmissione: dataEmissione,
-			SocioID:       socioID,
+			SocioID:       socioIDPtr2,
 			NomeCliente:   nomeCliente,
 			Totale:        totale,
 			Righe:         righe,

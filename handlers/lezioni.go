@@ -426,5 +426,5 @@ func (h *Handler) FormIscrizione(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templ.Handler(templates.IscrizioneForm(lezioneID, soci)).ServeHTTP(w, r)
+	templ.Handler(templates.IscrizioneForm(int64(lezioneID), soci)).ServeHTTP(w, r)
 }

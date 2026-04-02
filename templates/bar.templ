@@ -161,7 +161,7 @@ templ BarItemForm(item *models.BarItem) {
 						<input
 							type="number"
 							id="quantita_iniziale"
-							name="quantita_iniziale"
+							name="quantita"
 							value={ strconv.Itoa(item.Quantita) }
 							class="w-full px-4 py-2 border-2 border-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
 							placeholder="0"
@@ -187,7 +187,7 @@ templ BarItemForm(item *models.BarItem) {
 						<input
 							type="number"
 							id="prezzo"
-							name="prezzo"
+							name="prezzo_unitario"
 							value={ fmt.Sprintf("%.2f", item.Prezzo) }
 							class="w-full px-4 py-2 border-2 border-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
 							placeholder="0.00"
