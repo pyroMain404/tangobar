@@ -157,7 +157,12 @@ templ FatturaDettaglio(fattura models.Fattura) {
 					hx-swap="outerHTML"
 					class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition"
 				>
-					Segna come { if fattura.Pagata { "Non Pagata" } else { "Pagata" } }
+					Segna come
+					if fattura.Pagata {
+						Non Pagata
+					} else {
+						Pagata
+					}
 				</button>
 				<a href={ templ.SafeURL("/fatture/" + strconv.Itoa(fattura.ID) + "/edit") } class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-semibold transition">
 					Modifica
