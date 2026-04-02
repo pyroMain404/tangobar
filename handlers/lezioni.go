@@ -128,7 +128,8 @@ func (h *Handler) DettaglioLezione(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
-		isc.SocioNome = cognome + " " + nome
+		isc.NomeSocio = nome
+		isc.CognomeSocio = cognome
 		iscrizioni = append(iscrizioni, isc)
 	}
 

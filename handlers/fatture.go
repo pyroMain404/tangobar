@@ -76,7 +76,7 @@ func (h *Handler) DettaglioFattura(w http.ResponseWriter, r *http.Request) {
 
 	for righeRows.Next() {
 		var riga models.RigaFattura
-		if err := righeRows.Scan(&riga.ID, &riga.FatturaID, &riga.Descrizione, &riga.Quantita, &riga.PrezzoUnitario, &riga.Totale); err != nil {
+		if err := righeRows.Scan(&riga.ID, &riga.FatturaID, &riga.Descrizione, &riga.Quantita, &riga.PrezzoUnit, &riga.Totale); err != nil {
 			http.Error(w, "Errore nella lettura righe", http.StatusInternalServerError)
 			return
 		}
@@ -209,7 +209,7 @@ func (h *Handler) CreaFattura(w http.ResponseWriter, r *http.Request) {
 		_, err := tx.Exec(`
 			INSERT INTO righe_fattura (fattura_id, descrizione, quantita, prezzo_unitario, totale)
 			VALUES (?, ?, ?, ?, ?)
-		`, fatturaID, riga.Descrizione, riga.Quantita, riga.PrezzoUnitario, riga.Totale)
+		`, fatturaID, riga.Descrizione, riga.Quantita, riga.PrezzoUnit, riga.Totale)
 		if err != nil {
 			http.Error(w, "Errore creazione riga", http.StatusInternalServerError)
 			return
@@ -333,7 +333,7 @@ func (h *Handler) DownloadFatturaPDF(w http.ResponseWriter, r *http.Request) {
 		var righe []models.RigaFattura
 		for righeRows.Next() {
 			var riga models.RigaFattura
-			if err := righeRows.Scan(&riga.Descrizione, &riga.Quantita, &riga.PrezzoUnitario, &riga.Totale); err != nil {
+			if err := righeRows.Scan(&riga.Descrizione, &riga.Quantita, &riga.PrezzoUnit, &riga.Totale); err != nil {
 				http.Error(w, "Errore nella lettura righe", http.StatusInternalServerError)
 				return
 			}

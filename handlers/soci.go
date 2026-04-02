@@ -115,7 +115,7 @@ func (h *Handler) DettaglioSocio(w http.ResponseWriter, r *http.Request) {
 	var tessere []models.Tessera
 	for tessereRows.Next() {
 		var t models.Tessera
-		err := tessereRows.Scan(&t.ID, &t.SocioID, &t.Tipo, &t.EmoissaIl, &t.ValidaFino, &t.Importo, &t.Pagato, &t.CreatedAt, &t.UpdatedAt)
+		err := tessereRows.Scan(&t.ID, &t.SocioID, &t.Tipo, &t.EmessaIl, &t.ValidaFino, &t.Importo, &t.Pagato, &t.CreatedAt, &t.UpdatedAt)
 		if err != nil {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return

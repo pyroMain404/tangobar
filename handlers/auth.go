@@ -100,7 +100,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session.MaxAge = -1
+	session.Options.MaxAge = -1
 	session.Save(r, w)
 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -134,5 +134,5 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templates.Layout("Dashboard", templates.DashboardPage()).Render(r.Context(), w)
+	renderTempl(w, r, templates.DashboardPage(map[string]interface{}{}))
 }

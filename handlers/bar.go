@@ -27,7 +27,7 @@ func (h *Handler) ListaBar(w http.ResponseWriter, r *http.Request) {
 	var items []models.BarItem
 	for rows.Next() {
 		var item models.BarItem
-		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.PrezzoUnitario); err != nil {
+		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.Prezzo); err != nil {
 			http.Error(w, "Errore nella lettura bar items", http.StatusInternalServerError)
 			return
 		}
@@ -54,7 +54,7 @@ func (h *Handler) BarTabellaPartial(w http.ResponseWriter, r *http.Request) {
 	var items []models.BarItem
 	for rows.Next() {
 		var item models.BarItem
-		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.PrezzoUnitario); err != nil {
+		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.Prezzo); err != nil {
 			http.Error(w, "Errore nella lettura bar items", http.StatusInternalServerError)
 			return
 		}
@@ -80,7 +80,7 @@ func (h *Handler) ModificaBarItemForm(w http.ResponseWriter, r *http.Request) {
 		SELECT id, categoria, nome, quantita, prezzo_unitario
 		FROM bar_items
 		WHERE id = ?
-	`, id).Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.PrezzoUnitario)
+	`, id).Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.Prezzo)
 
 	if err == sql.ErrNoRows {
 		http.NotFound(w, r)
@@ -243,7 +243,7 @@ func (h *Handler) RegistraMovimento(w http.ResponseWriter, r *http.Request) {
 	var items []models.BarItem
 	for rows.Next() {
 		var item models.BarItem
-		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.PrezzoUnitario); err != nil {
+		if err := rows.Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.Prezzo); err != nil {
 			http.Error(w, "Errore nella lettura bar items", http.StatusInternalServerError)
 			return
 		}
@@ -264,7 +264,7 @@ func (h *Handler) StoricoMovimenti(w http.ResponseWriter, r *http.Request) {
 		SELECT id, categoria, nome, quantita, prezzo_unitario
 		FROM bar_items
 		WHERE id = ?
-	`, id).Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.PrezzoUnitario)
+	`, id).Scan(&item.ID, &item.Categoria, &item.Nome, &item.Quantita, &item.Prezzo)
 
 	if err == sql.ErrNoRows {
 		http.NotFound(w, r)
@@ -293,7 +293,7 @@ func (h *Handler) StoricoMovimenti(w http.ResponseWriter, r *http.Request) {
 	for movimentiRows.Next() {
 		var m models.BarMovimento
 		var itemName string
-		if err := movimentiRows.Scan(&m.ID, &m.BarItemID, &m.Delta, &m.Nota, &m.DataRegistrazione, &itemName); err != nil {
+		if err := movimentiRows.Scan(&m.ID, &m.ItemID, &m.Delta, &m.Nota, &m.Timestamp, &itemName); err != nil {
 			http.Error(w, "Errore nella lettura movimenti", http.StatusInternalServerError)
 			return
 		}
