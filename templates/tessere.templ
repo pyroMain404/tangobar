@@ -293,16 +293,6 @@ templ TesseraRinnovo(tessera models.Tessera) {
 	</div>
 }
 
-// Helper functions
-
-func formatDate(t time.Time) string {
-	return t.Format("02/01/2006")
-}
-
-func formatMoney(amount float64) string {
-	return fmt.Sprintf("€ %.2f", amount)
-}
-
 func tipoTesseraBadgeClass(tipo string) string {
 	baseClass := "px-3 py-1 text-xs font-semibold border"
 	switch tipo {

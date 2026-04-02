@@ -44,7 +44,7 @@ templ BarTabella(items []models.BarItem) {
 				<tr
 					class={
 						"border-b hover:bg-light-gold transition",
-						templ.KV("bg-red-50", item.Quantita <= item.SogliaMini),
+						templ.KV("bg-red-50", item.Quantita <= item.SogliaMin),
 					}
 				>
 					<td class="px-6 py-4 font-semibold text-dark-navy">
@@ -54,16 +54,16 @@ templ BarTabella(items []models.BarItem) {
 						{ item.Categoria }
 					</td>
 					<td class="px-6 py-4 text-center">
-						if item.Quantita <= item.SogliaMini {
+						if item.Quantita <= item.SogliaMin {
 							<span class="bg-red-200 text-red-800 px-3 py-1 rounded-full font-semibold text-xs">
-								{ strconv.FormatFloat(item.Quantita, 'f', 2, 64) }
+								{ strconv.Itoa(item.Quantita) }
 							</span>
 						} else {
-							<span>{ strconv.FormatFloat(item.Quantita, 'f', 2, 64) }</span>
+							<span>{ strconv.Itoa(item.Quantita) }</span>
 						}
 					</td>
 					<td class="px-6 py-4 text-center">
-						{ strconv.FormatFloat(item.SogliaMini, 'f', 2, 64) }
+						{ strconv.Itoa(item.SogliaMin) }
 					</td>
 					<td class="px-6 py-4 text-right font-semibold">
 						€ { fmt.Sprintf("%.2f", item.Prezzo) }
@@ -71,7 +71,7 @@ templ BarTabella(items []models.BarItem) {
 					<td class="px-6 py-4 text-center">
 						<div class="flex gap-2 justify-center items-center">
 							<button
-								hx-post={ "/bar/" + strconv.Itoa(item.ID) + "/movimento" }
+								hx-post={ "/bar/" + strconv.FormatInt(item.ID, 10) + "/movimento" }
 								hx-vals='{"delta": "-1"}'
 								hx-target="#bar-table"
 								hx-swap="outerHTML"
@@ -81,7 +81,7 @@ templ BarTabella(items []models.BarItem) {
 								−
 							</button>
 							<button
-								hx-post={ "/bar/" + strconv.Itoa(item.ID) + "/movimento" }
+								hx-post={ "/bar/" + strconv.FormatInt(item.ID, 10) + "/movimento" }
 								hx-vals='{"delta": "1"}'
 								hx-target="#bar-table"
 								hx-swap="outerHTML"
@@ -90,10 +90,10 @@ templ BarTabella(items []models.BarItem) {
 							>
 								+
 							</button>
-							<a href={ templ.SafeURL("/bar/" + strconv.Itoa(item.ID) + "/movimenti") } class="text-gold hover:text-gold-dark font-semibold transition">
+							<a href={ templ.SafeURL("/bar/" + strconv.FormatInt(item.ID, 10) + "/movimenti") } class="text-gold hover:text-gold-dark font-semibold transition">
 								Movimenti
 							</a>
-							<a href={ templ.SafeURL("/bar/" + strconv.Itoa(item.ID) + "/edit") } class="text-blue-600 hover:text-blue-800 font-semibold transition">
+							<a href={ templ.SafeURL("/bar/" + strconv.FormatInt(item.ID, 10) + "/edit") } class="text-blue-600 hover:text-blue-800 font-semibold transition">
 								Modifica
 							</a>
 						</div>
@@ -123,7 +123,7 @@ templ BarItemForm(item *models.BarItem) {
 				if item.ID == 0 {
 					hx-post="/bar"
 				} else {
-					hx-put={ "/bar/" + strconv.Itoa(item.ID) }
+					hx-put={ "/bar/" + strconv.FormatInt(item.ID, 10) }
 				}
 				hx-swap="redirect"
 				class="space-y-6"
@@ -162,23 +162,23 @@ templ BarItemForm(item *models.BarItem) {
 							type="number"
 							id="quantita_iniziale"
 							name="quantita_iniziale"
-							value={ strconv.FormatFloat(item.Quantita, 'f', 2, 64) }
+							value={ strconv.Itoa(item.Quantita) }
 							class="w-full px-4 py-2 border-2 border-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
-							placeholder="0.00"
-							step="0.01"
+							placeholder="0"
+							step="1"
 							required
 						/>
 					</div>
 					<div>
-						<label for="soglia_mini" class="block font-semibold text-dark-navy mb-2">Soglia Minima</label>
+						<label for="soglia_min" class="block font-semibold text-dark-navy mb-2">Soglia Minima</label>
 						<input
 							type="number"
-							id="soglia_mini"
-							name="soglia_mini"
-							value={ strconv.FormatFloat(item.SogliaMini, 'f', 2, 64) }
+							id="soglia_min"
+							name="soglia_min"
+							value={ strconv.Itoa(item.SogliaMin) }
 							class="w-full px-4 py-2 border-2 border-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
-							placeholder="0.00"
-							step="0.01"
+							placeholder="0"
+							step="1"
 							required
 						/>
 					</div>
@@ -223,11 +223,11 @@ templ BarMovimenti(item models.BarItem, movimenti []models.BarMovimento) {
 				<div class="mt-4 flex gap-8">
 					<div>
 						<span class="text-sm text-gray-600">Quantità Attuale</span>
-						<p class="text-2xl font-bold text-dark-navy">{ strconv.FormatFloat(item.Quantita, 'f', 2, 64) }</p>
+						<p class="text-2xl font-bold text-dark-navy">{ strconv.Itoa(item.Quantita) }</p>
 					</div>
 					<div>
 						<span class="text-sm text-gray-600">Soglia Minima</span>
-						<p class="text-2xl font-bold text-gold">{ strconv.FormatFloat(item.SogliaMini, 'f', 2, 64) }</p>
+						<p class="text-2xl font-bold text-gold">{ strconv.Itoa(item.SogliaMin) }</p>
 					</div>
 					<div>
 						<span class="text-sm text-gray-600">Prezzo</span>
@@ -254,13 +254,13 @@ templ BarMovimenti(item models.BarItem, movimenti []models.BarMovimento) {
 							for _, mov := range movimenti {
 								<tr class="border-b hover:bg-light-gold transition">
 									<td class="px-6 py-4">
-										{ mov.Data.Format("02/01/2006 15:04") }
+										{ mov.Timestamp.Format("02/01/2006 15:04") }
 									</td>
 									<td class="px-6 py-4 text-center font-semibold">
 										if mov.Delta > 0 {
-											<span class="text-green-700">+{ strconv.FormatFloat(mov.Delta, 'f', 2, 64) }</span>
+											<span class="text-green-700">+{ strconv.Itoa(mov.Delta) }</span>
 										} else {
-											<span class="text-red-700">{ strconv.FormatFloat(mov.Delta, 'f', 2, 64) }</span>
+											<span class="text-red-700">{ strconv.Itoa(mov.Delta) }</span>
 										}
 									</td>
 									<td class="px-6 py-4">
@@ -279,7 +279,7 @@ templ BarMovimenti(item models.BarItem, movimenti []models.BarMovimento) {
 
 			<div class="border-t-2 border-gold pt-6">
 				<h2 class="text-xl font-bold text-dark-navy mb-4">Aggiungi Movimento Manuale</h2>
-				<form hx-post={ "/bar/" + strconv.Itoa(item.ID) + "/movimento-manuale" } hx-swap="outerHTML swap:1s" class="space-y-4">
+				<form hx-post={ "/bar/" + strconv.FormatInt(item.ID, 10) + "/movimento-manuale" } hx-swap="outerHTML swap:1s" class="space-y-4">
 					<div class="grid grid-cols-3 gap-4">
 						<div>
 							<label for="delta" class="block font-semibold text-dark-navy mb-2">Delta (+ o -)</label>
@@ -288,8 +288,8 @@ templ BarMovimenti(item models.BarItem, movimenti []models.BarMovimento) {
 								id="delta"
 								name="delta"
 								class="w-full px-4 py-2 border-2 border-gold rounded-lg focus:outline-none focus:ring-2 focus:ring-gold"
-								placeholder="0.00"
-								step="0.01"
+								placeholder="0"
+								step="1"
 								required
 							/>
 						</div>
