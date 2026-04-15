@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"golang.org/x/crypto/bcrypt"
 	"tango-gestionale/db"
 	"tango-gestionale/handlers"
 )
@@ -185,8 +186,9 @@ func seedAdminUser(database *sql.DB) error {
 }
 
 func hashPassword(password string) (string, error) {
-	// This is a placeholder - import golang.org/x/crypto/bcrypt in actual implementation
-	// hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	// return string(hash), err
-	return password, nil // Replace with actual bcrypt hashing
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }

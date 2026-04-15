@@ -236,7 +236,15 @@ func (h *Handler) TogglePagatoTessera(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to referrer or to soci detail page
+	newPagato := !pagato
+
+	// HTMX: return inline partial instead of redirect
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderTempl(w, r, templates.TesseraPagatoBadge(id, newPagato))
+		return
+	}
+
 	referrer := r.Header.Get("Referer")
 	if referrer != "" {
 		http.Redirect(w, r, referrer, http.StatusSeeOther)

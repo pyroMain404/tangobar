@@ -160,10 +160,11 @@ func (h *Handler) CreaFattura(w http.ResponseWriter, r *http.Request) {
 
 	// Generate numero as YYYY/NNN
 	year := time.Now().Year()
+	yearStr := strconv.Itoa(year)
 	var count int
 	err := h.DB.QueryRow(`
-		SELECT COUNT(*) FROM fatture WHERE YEAR(data_emissione) = ?
-	`, year).Scan(&count)
+		SELECT COUNT(*) FROM fatture WHERE strftime('%Y', data_emissione) = ?
+	`, yearStr).Scan(&count)
 	if err != nil {
 		http.Error(w, "Errore nel calcolo numero fattura", http.StatusInternalServerError)
 		return
@@ -222,16 +223,11 @@ func (h *Handler) CreaFattura(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create PDF
-	var socioIDPtr *int64
-	if socioID.Valid {
-		v := socioID.Int64
-		socioIDPtr = &v
-	}
 	fattura := models.Fattura{
 		ID:            fatturaID,
 		Numero:        numero,
 		DataEmissione: time.Now(),
-		SocioID:       socioIDPtr,
+		SocioID:       nullInt64ToPtr(socioID),
 		NomeCliente:   nomeCliente,
 		Totale:        totale,
 		Righe:         righe,
@@ -279,9 +275,17 @@ func (h *Handler) TogglePagataFattura(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Toggle pagata
-	_, err = h.DB.Exec(`UPDATE fatture SET pagata = ? WHERE id = ?`, !pagata, id)
+	newPagata := !pagata
+	_, err = h.DB.Exec(`UPDATE fatture SET pagata = ? WHERE id = ?`, newPagata, id)
 	if err != nil {
 		http.Error(w, "Errore aggiornamento fattura", http.StatusInternalServerError)
+		return
+	}
+
+	// HTMX: return inline partial
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		renderTempl(w, r, templates.FatturaPagataBadge(id, newPagata))
 		return
 	}
 
@@ -345,16 +349,11 @@ func (h *Handler) DownloadFatturaPDF(w http.ResponseWriter, r *http.Request) {
 			righe = append(righe, riga)
 		}
 
-		var socioIDPtr2 *int64
-		if socioID.Valid {
-			v := socioID.Int64
-			socioIDPtr2 = &v
-		}
 		fattura := models.Fattura{
 			ID:            int64(fatturaID),
 			Numero:        numero,
 			DataEmissione: dataEmissione,
-			SocioID:       socioIDPtr2,
+			SocioID:       nullInt64ToPtr(socioID),
 			NomeCliente:   nomeCliente,
 			Totale:        totale,
 			Righe:         righe,

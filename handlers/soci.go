@@ -123,13 +123,13 @@ func (h *Handler) DettaglioSocio(w http.ResponseWriter, r *http.Request) {
 		tessere = append(tessere, t)
 	}
 
-	// Get iscrizioni with lezione titles
+	// Get iscrizioni with lezione details
 	iscrizioniRows, err := h.DB.QueryContext(r.Context(), `
-		SELECT i.id, i.socio_id, i.lezione_id, l.titolo, i.data_iscrizione, i.created_at, i.updated_at
-		FROM iscrizioni i
-		JOIN lezioni l ON i.lezione_id = l.id
-		WHERE i.socio_id = ?
-		ORDER BY i.data_iscrizione DESC
+		SELECT il.id, il.socio_id, il.lezione_id, l.titolo, l.data_ora, l.insegnante, il.pagato
+		FROM iscrizioni_lezione il
+		JOIN lezioni l ON il.lezione_id = l.id
+		WHERE il.socio_id = ?
+		ORDER BY l.data_ora DESC
 	`, id)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
@@ -140,13 +140,12 @@ func (h *Handler) DettaglioSocio(w http.ResponseWriter, r *http.Request) {
 	var iscrizioni []models.Iscrizione
 	for iscrizioniRows.Next() {
 		var isc models.Iscrizione
-		var lezioneTitle string
-		err := iscrizioniRows.Scan(&isc.ID, &isc.SocioID, &isc.LezioneID, &lezioneTitle, &isc.DataIscrizione, &isc.CreatedAt, &isc.UpdatedAt)
+		err := iscrizioniRows.Scan(&isc.ID, &isc.SocioID, &isc.LezioneID, &isc.LezioneTitolo, &isc.DataLezione, &isc.InsegnanteName, &isc.Pagato)
 		if err != nil {
 			http.Error(w, "Scan error", http.StatusInternalServerError)
 			return
 		}
-		isc.LezioneTitolo = lezioneTitle
+		isc.OraLezione = isc.DataLezione
 		iscrizioni = append(iscrizioni, isc)
 	}
 

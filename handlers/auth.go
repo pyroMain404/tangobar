@@ -133,6 +133,44 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	stats := map[string]interface{}{}
+
+	// Total soci
+	var totalSoci int
+	h.DB.QueryRow("SELECT COUNT(*) FROM soci").Scan(&totalSoci)
+	stats["total_soci"] = totalSoci
+
+	// Tessere in scadenza (prossimi 30 giorni)
+	var tessereScadenza int
+	h.DB.QueryRow("SELECT COUNT(*) FROM tessere WHERE valida_fino BETWEEN date('now') AND date('now', '+30 days')").Scan(&tessereScadenza)
+	stats["tessere_scadenza"] = tessereScadenza
+
+	// Lezioni prossime
+	var lezioniProssime int
+	h.DB.QueryRow("SELECT COUNT(*) FROM lezioni WHERE data_ora > datetime('now')").Scan(&lezioniProssime)
+	stats["lezioni_prossime"] = lezioniProssime
+
+	// Articoli bar sotto soglia
+	var inventoryWarning int
+	h.DB.QueryRow("SELECT COUNT(*) FROM bar_items WHERE quantita <= soglia_min").Scan(&inventoryWarning)
+	stats["inventory_warning"] = inventoryWarning
+
+	// Incasso oggi - eventi
+	var incassoEventi float64
+	h.DB.QueryRow("SELECT COALESCE(SUM(importo), 0) FROM ingressi_milonga WHERE date(timestamp) = date('now')").Scan(&incassoEventi)
+
+	// Incasso oggi - tessere pagate oggi
+	var incassoTessere float64
+	h.DB.QueryRow("SELECT COALESCE(SUM(importo), 0) FROM tessere WHERE date(updated_at) = date('now') AND pagato = 1").Scan(&incassoTessere)
+
+	// Incasso oggi - bar vendite (delta negativo = vendita)
+	var incassoBar float64
+	h.DB.QueryRow(`SELECT COALESCE(SUM(ABS(m.delta) * b.prezzo), 0)
+		FROM bar_movimenti m JOIN bar_items b ON m.item_id = b.id
+		WHERE m.delta < 0 AND date(m.timestamp) = date('now')`).Scan(&incassoBar)
+
+	stats["incasso_oggi"] = incassoEventi + incassoTessere + incassoBar
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	renderTempl(w, r, templates.DashboardPage(map[string]interface{}{}))
+	renderTempl(w, r, templates.DashboardPage(stats))
 }

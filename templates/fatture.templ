@@ -48,11 +48,7 @@ templ FatturePage(fatture []models.Fattura) {
 									€ { fmt.Sprintf("%.2f", f.Totale) }
 								</td>
 								<td class="px-6 py-4 text-center">
-									if f.Pagata {
-										<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Pagata</span>
-									} else {
-										<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">Non pagata</span>
-									}
+									@FatturaPagataBadge(strconv.FormatInt(f.ID, 10), f.Pagata)
 								</td>
 								<td class="px-6 py-4 text-center">
 									<div class="flex gap-2 justify-center">
@@ -307,4 +303,19 @@ templ FatturaForm(fattura *models.Fattura, soci []models.Socio) {
 			btn.closest('.riga-item').remove();
 		}
 	</script>
+}
+
+templ FatturaPagataBadge(fatturaID string, pagata bool) {
+	<div
+		hx-post={ "/fatture/" + fatturaID + "/pagata" }
+		hx-swap="outerHTML"
+		class="cursor-pointer inline-block"
+		title="Clicca per cambiare"
+	>
+		if pagata {
+			<span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">Pagata</span>
+		} else {
+			<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">Non pagata</span>
+		}
+	</div>
 }

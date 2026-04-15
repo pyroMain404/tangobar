@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"strconv"
@@ -10,6 +11,51 @@ import (
 	"tango-gestionale/models"
 	"tango-gestionale/templates"
 )
+
+func nullInt64ToPtr(n sql.NullInt64) *int64 {
+	if n.Valid {
+		v := n.Int64
+		return &v
+	}
+	return nil
+}
+
+func (h *Handler) fetchIngressi(ctx context.Context, eventoID string) ([]models.IngressoMilonga, float64, error) {
+	rows, err := h.DB.QueryContext(ctx, `
+		SELECT im.id, im.evento_id, im.socio_id, im.nome_ospite, im.importo,
+		       CASE WHEN im.socio_id IS NOT NULL THEN s.cognome || ' ' || s.nome ELSE im.nome_ospite END as persona_nome
+		FROM ingressi_milonga im
+		LEFT JOIN soci s ON im.socio_id = s.id
+		WHERE im.evento_id = $1
+		ORDER BY im.id DESC
+	`, eventoID)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var ingressi []models.IngressoMilonga
+	var totale float64
+	for rows.Next() {
+		var ing models.IngressoMilonga
+		var eid, sid sql.NullInt64
+		var pn sql.NullString
+		if err := rows.Scan(&ing.ID, &eid, &sid, &ing.NomeOspite, &ing.Importo, &pn); err != nil {
+			return nil, 0, err
+		}
+		ing.EventoID = nullInt64ToPtr(eid)
+		ing.SocioID = nullInt64ToPtr(sid)
+		if pn.Valid {
+			ing.NomeSocio = pn.String
+		}
+		totale += ing.Importo
+		ingressi = append(ingressi, ing)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, 0, err
+	}
+	return ingressi, totale, nil
+}
 
 // ListaEventi handles GET /eventi
 func (h *Handler) ListaEventi(w http.ResponseWriter, r *http.Request) {
@@ -83,56 +129,9 @@ func (h *Handler) DettaglioEvento(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get ingressi with socio names
-	rows, err := h.DB.QueryContext(r.Context(), `
-		SELECT im.id, im.evento_id, im.socio_id, im.nome_ospite, im.importo,
-		       CASE WHEN im.socio_id IS NOT NULL THEN s.cognome || ' ' || s.nome ELSE im.nome_ospite END as persona_nome
-		FROM ingressi_milonga im
-		LEFT JOIN soci s ON im.socio_id = s.id
-		WHERE im.evento_id = $1
-		ORDER BY im.id DESC
-	`, id)
+	ingressi, totaleIncassato, err := h.fetchIngressi(r.Context(), id)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var ingressi []models.IngressoMilonga
-	var totaleIncassato float64
-	for rows.Next() {
-		var ing models.IngressoMilonga
-		var eventoID, socioID sql.NullInt64
-		var personaNome sql.NullString
-		err := rows.Scan(
-			&ing.ID,
-			&eventoID,
-			&socioID,
-			&ing.NomeOspite,
-			&ing.Importo,
-			&personaNome,
-		)
-		if err != nil {
-			http.Error(w, "Scan error", http.StatusInternalServerError)
-			return
-		}
-		if eventoID.Valid {
-			v := eventoID.Int64
-			ing.EventoID = &v
-		}
-		if socioID.Valid {
-			v := socioID.Int64
-			ing.SocioID = &v
-		}
-		if personaNome.Valid {
-			ing.NomeSocio = personaNome.String
-		}
-		totaleIncassato += ing.Importo
-		ingressi = append(ingressi, ing)
-	}
-
-	if err = rows.Err(); err != nil {
-		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
 	}
 
@@ -312,56 +311,9 @@ func (h *Handler) RegistraIngresso(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Re-fetch ingressi list + totale for HTMX swap
-	rows, err := h.DB.QueryContext(r.Context(), `
-		SELECT im.id, im.evento_id, im.socio_id, im.nome_ospite, im.importo,
-		       CASE WHEN im.socio_id IS NOT NULL THEN s.cognome || ' ' || s.nome ELSE im.nome_ospite END as persona_nome
-		FROM ingressi_milonga im
-		LEFT JOIN soci s ON im.socio_id = s.id
-		WHERE im.evento_id = $1
-		ORDER BY im.id DESC
-	`, eventoID)
+	ingressi, totaleIncassato, err := h.fetchIngressi(r.Context(), eventoID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var ingressi []models.IngressoMilonga
-	var totaleIncassato float64
-	for rows.Next() {
-		var ing models.IngressoMilonga
-		var eventoID, socioID sql.NullInt64
-		var personaNome sql.NullString
-		err := rows.Scan(
-			&ing.ID,
-			&eventoID,
-			&socioID,
-			&ing.NomeOspite,
-			&ing.Importo,
-			&personaNome,
-		)
-		if err != nil {
-			http.Error(w, "Scan error", http.StatusInternalServerError)
-			return
-		}
-		if eventoID.Valid {
-			v := eventoID.Int64
-			ing.EventoID = &v
-		}
-		if socioID.Valid {
-			v := socioID.Int64
-			ing.SocioID = &v
-		}
-		if personaNome.Valid {
-			ing.NomeSocio = personaNome.String
-		}
-		totaleIncassato += ing.Importo
-		ingressi = append(ingressi, ing)
-	}
-
-	if err = rows.Err(); err != nil {
-		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
 	}
 
@@ -401,56 +353,9 @@ func (h *Handler) RegistraIngressoOspite(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// Re-fetch ingressi list + totale for HTMX swap
-	rows, err := h.DB.QueryContext(r.Context(), `
-		SELECT im.id, im.evento_id, im.socio_id, im.nome_ospite, im.importo,
-		       CASE WHEN im.socio_id IS NOT NULL THEN s.cognome || ' ' || s.nome ELSE im.nome_ospite END as persona_nome
-		FROM ingressi_milonga im
-		LEFT JOIN soci s ON im.socio_id = s.id
-		WHERE im.evento_id = $1
-		ORDER BY im.id DESC
-	`, eventoID)
+	ingressi, totaleIncassato, err := h.fetchIngressi(r.Context(), eventoID)
 	if err != nil {
 		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-	defer rows.Close()
-
-	var ingressi []models.IngressoMilonga
-	var totaleIncassato float64
-	for rows.Next() {
-		var ing models.IngressoMilonga
-		var eventoID, socioID sql.NullInt64
-		var personaNome sql.NullString
-		err := rows.Scan(
-			&ing.ID,
-			&eventoID,
-			&socioID,
-			&ing.NomeOspite,
-			&ing.Importo,
-			&personaNome,
-		)
-		if err != nil {
-			http.Error(w, "Scan error", http.StatusInternalServerError)
-			return
-		}
-		if eventoID.Valid {
-			v := eventoID.Int64
-			ing.EventoID = &v
-		}
-		if socioID.Valid {
-			v := socioID.Int64
-			ing.SocioID = &v
-		}
-		if personaNome.Valid {
-			ing.NomeSocio = personaNome.String
-		}
-		totaleIncassato += ing.Importo
-		ingressi = append(ingressi, ing)
-	}
-
-	if err = rows.Err(); err != nil {
-		http.Error(w, "Query error", http.StatusInternalServerError)
 		return
 	}
 
