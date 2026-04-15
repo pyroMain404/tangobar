@@ -20,7 +20,7 @@ func nullInt64ToPtr(n sql.NullInt64) *int64 {
 	return nil
 }
 
-func (h *Handler) fetchIngressi(ctx context.Context, eventoID string) ([]models.IngressoMilonga, float64, error) {
+func (h *Handler) fetchIngressi(ctx context.Context, eventoID int) ([]models.IngressoMilonga, float64, error) {
 	rows, err := h.DB.QueryContext(ctx, `
 		SELECT im.id, im.evento_id, im.socio_id, im.nome_ospite, im.importo,
 		       CASE WHEN im.socio_id IS NOT NULL THEN s.cognome || ' ' || s.nome ELSE im.nome_ospite END as persona_nome
