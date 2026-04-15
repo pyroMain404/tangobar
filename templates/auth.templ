@@ -5,92 +5,53 @@ import (
 )
 
 templ LoginPage(errMsg string) {
-	<div class="min-h-screen bg-gradient-to-br from-dark-navy via-dark-navy to-black flex items-center justify-center px-4">
-		<div class="w-full max-w-md">
-			<!-- Decorative gold line above -->
-			<div class="flex items-center justify-center mb-8">
-				<div class="h-1 bg-gradient-to-r from-gold via-gold-light to-gold w-full max-w-xs"></div>
+	@AuthLayout("Accesso") {
+		<div class="auth-frame">
+			<span class="corner tl" aria-hidden="true"></span>
+			<span class="corner tr" aria-hidden="true"></span>
+			<span class="corner bl" aria-hidden="true"></span>
+			<span class="corner br" aria-hidden="true"></span>
+
+			<div class="auth-brand">
+				<div class="auth-diamond" aria-hidden="true"><span>T</span></div>
+				<h1 class="auth-title">TangoBar</h1>
+				<div class="auth-rule"><span>MCMXXV · Gestionale</span></div>
 			</div>
 
-			<!-- Main card with Art Deco style -->
-			<div class="bg-dark-navy border-4 border-gold rounded-lg shadow-2xl p-8">
-				<!-- Logo and Title -->
-				<div class="text-center mb-8">
-					<div class="inline-block mb-4">
-						<svg class="w-16 h-16 text-gold" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-						</svg>
-					</div>
-					<h1 class="text-4xl font-black text-gold mb-2 tracking-widest">TANGOBAR</h1>
-					<div class="flex items-center justify-center gap-3">
-						<div class="h-px w-8 bg-gold"></div>
-						<p class="text-gold-light uppercase text-sm tracking-widest font-semibold">Gestionale</p>
-						<div class="h-px w-8 bg-gold"></div>
-					</div>
+			if errMsg != "" {
+				<div class="auth-error" role="alert">{ errMsg }</div>
+			}
+
+			<form method="POST" action="/login" autocomplete="on">
+				<div class="auth-field">
+					<label for="username">Utente</label>
+					<input
+						type="text"
+						id="username"
+						name="username"
+						placeholder="Inserisci username"
+						required
+						autofocus
+						autocomplete="username"
+					/>
 				</div>
-
-				<!-- Decorative divider -->
-				<div class="border-b-2 border-gold mb-8"></div>
-
-				<!-- Error message -->
-				if errMsg != "" {
-					<div class="bg-red-100 border-2 border-red-600 rounded-lg p-4 mb-6">
-						<p class="text-red-800 font-semibold text-center">{ errMsg }</p>
-					</div>
-				}
-
-				<!-- Login form -->
-				<form method="POST" action="/login" class="space-y-6">
-					<div>
-						<label for="username" class="block text-gold font-bold uppercase text-sm mb-3 tracking-wide">
-							Utente
-						</label>
-						<input
-							type="text"
-							id="username"
-							name="username"
-							class="w-full px-4 py-3 bg-light-gold border-2 border-gold rounded-lg text-dark-navy font-semibold focus:outline-none focus:ring-2 focus:ring-gold-light focus:bg-white transition"
-							placeholder="Inserisci il tuo username"
-							required
-							autofocus
-						/>
-					</div>
-
-					<div>
-						<label for="password" class="block text-gold font-bold uppercase text-sm mb-3 tracking-wide">
-							Password
-						</label>
-						<input
-							type="password"
-							id="password"
-							name="password"
-							class="w-full px-4 py-3 bg-light-gold border-2 border-gold rounded-lg text-dark-navy font-semibold focus:outline-none focus:ring-2 focus:ring-gold-light focus:bg-white transition"
-							placeholder="Inserisci la tua password"
-							required
-						/>
-					</div>
-
-					<!-- Submit button with Art Deco styling -->
-					<button
-						type="submit"
-						class="w-full bg-gradient-to-r from-gold to-gold-light text-dark-navy font-black uppercase py-3 rounded-lg mt-8 hover:shadow-lg transition transform hover:scale-105 active:scale-95 tracking-wider text-lg"
-					>
-						Accedi
-					</button>
-				</form>
-
-				<!-- Decorative footer -->
-				<div class="border-t-2 border-gold mt-8 pt-6 text-center">
-					<p class="text-gold-light text-xs uppercase tracking-widest">Accedi per continuare</p>
+				<div class="auth-field">
+					<label for="password">Password</label>
+					<input
+						type="password"
+						id="password"
+						name="password"
+						placeholder="Inserisci password"
+						required
+						autocomplete="current-password"
+					/>
 				</div>
-			</div>
+				<button type="submit" class="auth-submit">Accedi ⟶</button>
+			</form>
 
-			<!-- Decorative gold line below -->
-			<div class="flex items-center justify-center mt-8">
-				<div class="h-1 bg-gradient-to-r from-gold via-gold-light to-gold w-full max-w-xs"></div>
-			</div>
+			<div class="auth-footer">Ars Tango · Est. MMXXV</div>
 		</div>
-	</div>
+	}
 }
 
 templ DashboardPage(stats map[string]interface{}) {

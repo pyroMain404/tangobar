@@ -38,7 +38,7 @@ func (h *Handler) ListaFatture(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templates.FatturePage(fatture).Render(r.Context(), w)
+	templates.Page("Fatture", "fatture", templates.FatturePage(fatture)).Render(r.Context(), w)
 }
 
 // DettaglioFattura handles GET /fatture/{id}
@@ -84,7 +84,7 @@ func (h *Handler) DettaglioFattura(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templates.FatturaDettaglio(fattura).Render(r.Context(), w)
+	templates.Page("Dettaglio Fattura", "fatture", templates.FatturaDettaglio(fattura)).Render(r.Context(), w)
 }
 
 // NuovaFatturaForm handles GET /fatture/nuova

@@ -172,5 +172,5 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	stats["incasso_oggi"] = incassoEventi + incassoTessere + incassoBar
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	renderTempl(w, r, templates.DashboardPage(stats))
+	renderTempl(w, r, templates.Page("Dashboard", "dashboard", templates.DashboardPage(stats)))
 }

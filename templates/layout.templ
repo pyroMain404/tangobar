@@ -1,5 +1,13 @@
 package templates
 
+// Page wraps any content component inside the main Layout shell.
+// Handlers use this so individual page templates don't need to know about Layout.
+templ Page(title string, activePage string, content templ.Component) {
+	@Layout(title, activePage) {
+		@content
+	}
+}
+
 templ Layout(title string, activePage string) {
 	<!DOCTYPE html>
 	<html lang="it">
@@ -863,6 +871,263 @@ templ Layout(title string, activePage string) {
 						{ children... }
 					</main>
 				</div>
+			</div>
+		</body>
+	</html>
+}
+
+// AuthLayout is a sidebar-less shell for pre-login pages (login, password reset, etc.).
+// Reuses the exact same head/assets as Layout so the Art Deco theme is identical.
+templ AuthLayout(title string) {
+	<!DOCTYPE html>
+	<html lang="it">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } · TangoBar</title>
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Italiana&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script>
+				tailwind.config = {
+					theme: {
+						extend: {
+							fontFamily: {
+								display: ['Marcellus', 'Italiana', 'serif'],
+								sans: ['"Josefin Sans"', 'system-ui', 'sans-serif'],
+							},
+							colors: {
+								obsidian: '#0A0A0A',
+								charcoal: '#141414',
+								champagne: '#F2F0E4',
+								pewter: '#888888',
+								gold: { DEFAULT: '#D4AF37', light: '#F2E8C4', dark: '#8A6D1C', 300: '#E8D37A', 400: '#DCBF52', 500: '#D4AF37', 600: '#B8941F' },
+								'light-gold': '#F2E8C4',
+								'dark-navy': '#0A0A0A',
+								white: '#141414',
+							},
+						},
+					},
+				};
+			</script>
+			<style>
+				:root {
+					--obsidian: #0A0A0A;
+					--charcoal: #141414;
+					--champagne: #F2F0E4;
+					--gold: #D4AF37;
+					--gold-light: #F2E8C4;
+					--gold-dark: #8A6D1C;
+					--pewter: #888888;
+				}
+				* { box-sizing: border-box; }
+				html, body {
+					margin: 0; padding: 0;
+					background: var(--obsidian);
+					color: var(--champagne);
+					font-family: 'Josefin Sans', system-ui, sans-serif;
+					font-weight: 300;
+					min-height: 100vh;
+					-webkit-font-smoothing: antialiased;
+				}
+				body::before {
+					content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+					background-image:
+						repeating-linear-gradient(45deg, transparent 0 3px, rgba(212,175,55,0.03) 3px 4px),
+						repeating-linear-gradient(-45deg, transparent 0 3px, rgba(212,175,55,0.03) 3px 4px),
+						radial-gradient(ellipse at center, rgba(212,175,55,0.12), transparent 65%);
+				}
+				body::after {
+					content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.5;
+					background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/></svg>");
+				}
+				h1, h2, h3 {
+					font-family: 'Marcellus', serif; font-weight: 400;
+					color: var(--gold); text-transform: uppercase;
+					letter-spacing: 0.25em; margin: 0;
+				}
+				a { color: var(--gold); text-decoration: none; }
+				::selection { background: rgba(212,175,55,0.35); color: var(--champagne); }
+
+				.auth-stage {
+					position: relative; z-index: 1;
+					min-height: 100vh;
+					display: grid;
+					place-items: center;
+					padding: 40px 20px;
+				}
+				.auth-frame {
+					position: relative;
+					width: 100%;
+					max-width: 460px;
+					padding: 56px 48px 48px;
+					background: linear-gradient(180deg, #161616 0%, #0d0d0d 100%);
+					border: 1px solid var(--gold);
+					box-shadow:
+						0 0 0 8px rgba(10,10,10,0.6),
+						0 0 0 9px rgba(212,175,55,0.3),
+						0 30px 80px rgba(0,0,0,0.8),
+						inset 0 0 60px rgba(212,175,55,0.05);
+				}
+				/* inner second frame */
+				.auth-frame::before {
+					content: ""; position: absolute; inset: 10px;
+					border: 1px solid rgba(212,175,55,0.25);
+					pointer-events: none;
+				}
+				/* stepped corner brackets */
+				.auth-frame .corner {
+					position: absolute;
+					width: 22px; height: 22px;
+					border: 2px solid var(--gold);
+				}
+				.auth-frame .corner.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+				.auth-frame .corner.tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+				.auth-frame .corner.bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+				.auth-frame .corner.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+				.auth-brand { text-align: center; margin-bottom: 36px; position: relative; }
+				.auth-diamond {
+					width: 80px; height: 80px;
+					margin: 0 auto 24px;
+					border: 2px solid var(--gold);
+					transform: rotate(45deg);
+					display: grid; place-items: center;
+					box-shadow: 0 0 32px rgba(212,175,55,0.4), inset 0 0 20px rgba(212,175,55,0.15);
+					position: relative;
+				}
+				.auth-diamond::before {
+					content: ""; position: absolute; inset: 5px;
+					border: 1px solid rgba(212,175,55,0.4);
+				}
+				.auth-diamond span {
+					font-family: 'Marcellus', serif;
+					font-size: 34px;
+					color: var(--gold);
+					transform: rotate(-45deg);
+					text-shadow: 0 0 12px rgba(212,175,55,0.5);
+				}
+				.auth-title {
+					font-family: 'Marcellus', serif;
+					font-size: 34px;
+					color: var(--gold);
+					letter-spacing: 0.35em;
+					padding-left: 0.35em;
+					text-transform: uppercase;
+					margin: 0;
+				}
+				.auth-rule {
+					display: flex; align-items: center; justify-content: center;
+					gap: 14px; margin: 14px 0 0;
+				}
+				.auth-rule::before, .auth-rule::after {
+					content: ""; height: 1px; width: 50px;
+					background: linear-gradient(90deg, transparent, var(--gold));
+				}
+				.auth-rule::after { background: linear-gradient(90deg, var(--gold), transparent); }
+				.auth-rule span {
+					font-family: 'Marcellus', serif;
+					font-size: 10px;
+					letter-spacing: 0.35em;
+					color: var(--pewter);
+					text-transform: uppercase;
+				}
+
+				.auth-field { margin-bottom: 26px; }
+				.auth-field label {
+					display: block;
+					font-family: 'Marcellus', serif;
+					font-size: 10px;
+					letter-spacing: 0.3em;
+					text-transform: uppercase;
+					color: var(--gold);
+					margin-bottom: 8px;
+				}
+				.auth-field input {
+					width: 100%;
+					background: transparent;
+					border: 0;
+					border-bottom: 2px solid var(--gold);
+					color: var(--champagne);
+					font-family: 'Josefin Sans', sans-serif;
+					font-size: 16px;
+					padding: 10px 2px;
+					outline: none;
+					transition: all 250ms ease;
+					letter-spacing: 0.05em;
+				}
+				.auth-field input::placeholder { color: rgba(242,240,228,0.3); letter-spacing: 0.1em; }
+				.auth-field input:focus {
+					border-bottom-color: var(--gold-light);
+					box-shadow: 0 6px 16px -8px rgba(212,175,55,0.6);
+				}
+
+				.auth-submit {
+					display: flex; align-items: center; justify-content: center;
+					gap: 12px;
+					width: 100%;
+					margin-top: 12px;
+					padding: 16px 24px;
+					background: transparent;
+					color: var(--gold);
+					border: 2px solid var(--gold);
+					font-family: 'Josefin Sans', sans-serif;
+					font-size: 13px;
+					font-weight: 500;
+					letter-spacing: 0.3em;
+					text-transform: uppercase;
+					cursor: pointer;
+					transition: all 300ms ease;
+					position: relative;
+				}
+				.auth-submit::before {
+					content: ""; position: absolute; inset: 3px;
+					border: 1px solid rgba(212,175,55,0.4);
+					transition: border-color 300ms ease;
+				}
+				.auth-submit:hover {
+					background: var(--gold);
+					color: var(--obsidian);
+					box-shadow: 0 0 32px rgba(212,175,55,0.5);
+					letter-spacing: 0.4em;
+				}
+				.auth-submit:hover::before { border-color: rgba(10,10,10,0.4); }
+
+				.auth-error {
+					margin: 0 0 24px;
+					padding: 14px 18px;
+					border: 1px solid #E55A6F;
+					border-left: 4px solid #E55A6F;
+					background: rgba(196,30,58,0.12);
+					color: #F0B8C0;
+					font-size: 13px;
+					letter-spacing: 0.04em;
+					position: relative;
+				}
+				.auth-error::before {
+					content: ""; position: absolute; top: -1px; right: -1px;
+					width: 10px; height: 10px;
+					border-top: 1px solid #E55A6F;
+					border-right: 1px solid #E55A6F;
+				}
+
+				.auth-footer {
+					margin-top: 36px;
+					padding-top: 24px;
+					border-top: 1px solid rgba(212,175,55,0.25);
+					text-align: center;
+					font-family: 'Marcellus', serif;
+					font-size: 10px;
+					letter-spacing: 0.3em;
+					color: var(--pewter);
+					text-transform: uppercase;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="auth-stage">
+				{ children... }
 			</div>
 		</body>
 	</html>

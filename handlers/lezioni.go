@@ -63,7 +63,7 @@ func (h *Handler) ListaLezioni(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templ.Handler(templates.LezioniPage(lezioni)).ServeHTTP(w, r)
+	templ.Handler(templates.Page("Lezioni", "lezioni", templates.LezioniPage(lezioni))).ServeHTTP(w, r)
 }
 
 // DettaglioLezione handles GET /lezioni/{id}
@@ -139,7 +139,7 @@ func (h *Handler) DettaglioLezione(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templ.Handler(templates.LezioneDettaglio(lezione, iscrizioni)).ServeHTTP(w, r)
+	templ.Handler(templates.Page("Dettaglio Lezione", "lezioni", templates.LezioneDettaglio(lezione, iscrizioni))).ServeHTTP(w, r)
 }
 
 // NuovaLezioneForm handles GET /lezioni/nuova

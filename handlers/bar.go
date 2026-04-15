@@ -34,7 +34,7 @@ func (h *Handler) ListaBar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templates.BarPage(items).Render(r.Context(), w)
+	templates.Page("Bar", "bar", templates.BarPage(items)).Render(r.Context(), w)
 }
 
 // BarTabellaPartial handles GET /bar/tabella (HTMX)

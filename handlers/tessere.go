@@ -42,7 +42,7 @@ func (h *Handler) ListaTessere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, templates.TesserePage(tessere))
+	renderTempl(w, r, templates.Page("Tessere", "tessere", templates.TesserePage(tessere)))
 }
 
 // NuovaTesseraForm handles GET /tessere/nuova?socio_id=X - returns form with socio info

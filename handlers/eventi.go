@@ -95,7 +95,7 @@ func (h *Handler) ListaEventi(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templ.Handler(templates.EventiPage(eventi)).ServeHTTP(w, r)
+	templ.Handler(templates.Page("Eventi", "eventi", templates.EventiPage(eventi))).ServeHTTP(w, r)
 }
 
 // DettaglioEvento handles GET /eventi/{id}
@@ -136,7 +136,7 @@ func (h *Handler) DettaglioEvento(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	templ.Handler(templates.EventoDettaglio(evento, ingressi, totaleIncassato)).ServeHTTP(w, r)
+	templ.Handler(templates.Page("Dettaglio Evento", "eventi", templates.EventoDettaglio(evento, ingressi, totaleIncassato))).ServeHTTP(w, r)
 }
 
 // NuovoEventoForm handles GET /eventi/nuovo

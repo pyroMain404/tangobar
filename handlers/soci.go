@@ -41,7 +41,7 @@ func (h *Handler) ListaSoci(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, templates.SociPage(soci))
+	renderTempl(w, r, templates.Page("Soci", "soci", templates.SociPage(soci)))
 }
 
 // CercaSoci handles GET /soci/cerca?q=... - HTMX search endpoint
@@ -149,7 +149,7 @@ func (h *Handler) DettaglioSocio(w http.ResponseWriter, r *http.Request) {
 		iscrizioni = append(iscrizioni, isc)
 	}
 
-	renderTempl(w, r, templates.SocioDettaglio(socio, tessere, iscrizioni))
+	renderTempl(w, r, templates.Page("Dettaglio Socio", "soci", templates.SocioDettaglio(socio, tessere, iscrizioni)))
 }
 
 // NuovoSocioForm handles GET /soci/nuovo - returns empty form
