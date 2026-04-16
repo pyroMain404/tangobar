@@ -2,16 +2,13 @@ package handlers
 
 import (
 	"database/sql"
+
+	"tango-gestionale/mailer"
 )
 
-// Handler struct contains the database connection
+// Handler struct contains shared dependencies injected by main.
 type Handler struct {
-	DB *sql.DB
-}
-
-// NewHandler creates a new Handler with the provided database connection
-func NewHandler(db *sql.DB) *Handler {
-	return &Handler{
-		DB: db,
-	}
+	DB      *sql.DB
+	Mailer  *mailer.Mailer
+	BaseURL string // e.g. https://tb.gcoding.it, used to build magic-link URLs
 }

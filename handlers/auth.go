@@ -1,89 +1,182 @@
 package handlers
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
+	"log"
 	"net/http"
+	"strings"
+	"time"
 
 	"github.com/gorilla/sessions"
-	"golang.org/x/crypto/bcrypt"
 	"tango-gestionale/templates"
 )
 
 var store *sessions.CookieStore
 
-// InitAuth initializes the session cookie store
+const (
+	tokenTTL    = 15 * time.Minute
+	tokenBytes  = 32
+	sessionName = "auth"
+)
+
+// InitAuth initializes the session cookie store.
 func InitAuth(sessionKey string) {
 	store = sessions.NewCookieStore([]byte(sessionKey))
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7, // 7 days
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
+		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
 	}
 }
 
-// LoginPage handles GET /login
+// LoginPage handles GET /login — renders the email entry form.
 func (h *Handler) LoginPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	templates.LoginPage("").Render(r.Context(), w)
 }
 
-// Login handles POST /login
+// Login handles POST /login — looks up the email in the allowlist, issues a
+// one-time token, emails it as a magic link, and always responds with the same
+// "check your inbox" screen (to avoid email enumeration).
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		templates.LoginPage("Errore nel parsing del form").Render(r.Context(), w)
+		templates.LoginPage("Richiesta non valida").Render(r.Context(), w)
 		return
 	}
 
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	email := strings.TrimSpace(strings.ToLower(r.FormValue("email")))
+	if email == "" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Inserisci un indirizzo email").Render(r.Context(), w)
+		return
+	}
 
-	// Query for user
+	// Allowlist lookup — silent on miss to prevent enumeration.
 	var userID int
-	var hashedPassword string
-	var nome string
+	err := h.DB.QueryRow(`SELECT id FROM utenti WHERE email = ?`, email).Scan(&userID)
+	switch {
+	case err == sql.ErrNoRows:
+		// No user — still show the same confirmation screen.
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginLinkSent(email).Render(r.Context(), w)
+		return
+	case err != nil:
+		log.Printf("[auth] lookup error for %s: %v", email, err)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Errore interno, riprova più tardi").Render(r.Context(), w)
+		return
+	}
 
+	// Issue token
+	token, err := newToken()
+	if err != nil {
+		log.Printf("[auth] token gen error: %v", err)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Errore interno, riprova più tardi").Render(r.Context(), w)
+		return
+	}
+	expiresAt := time.Now().Add(tokenTTL)
+
+	_, err = h.DB.Exec(
+		`INSERT INTO login_tokens (token, user_id, expires_at) VALUES (?, ?, ?)`,
+		token, userID, expiresAt,
+	)
+	if err != nil {
+		log.Printf("[auth] token insert error: %v", err)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Errore interno, riprova più tardi").Render(r.Context(), w)
+		return
+	}
+
+	// Opportunistic cleanup of expired tokens (cheap, runs inline).
+	_, _ = h.DB.Exec(`DELETE FROM login_tokens WHERE expires_at < datetime('now', '-1 day')`)
+
+	// Build link and send
+	link := strings.TrimRight(h.BaseURL, "/") + "/login/verify?token=" + token
+	if err := h.Mailer.SendLoginLink(email, link); err != nil {
+		log.Printf("[auth] mailer error: %v", err)
+		// Still show the confirmation screen — the link was logged to stdout
+		// as a fallback so the admin can recover it.
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	templates.LoginLinkSent(email).Render(r.Context(), w)
+}
+
+// VerifyLogin handles GET /login/verify?token=... — consumes the token and
+// creates the session.
+func (h *Handler) VerifyLogin(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Link di accesso mancante o non valido").Render(r.Context(), w)
+		return
+	}
+
+	var (
+		userID    int
+		email     string
+		nome      string
+		ruolo     string
+		expiresAt time.Time
+		usedAt    sql.NullTime
+	)
 	err := h.DB.QueryRow(`
-		SELECT id, nome, password_hash
-		FROM utenti
-		WHERE username = ?
-	`, username).Scan(&userID, &nome, &hashedPassword)
+		SELECT t.user_id, u.email, u.nome, u.ruolo, t.expires_at, t.used_at
+		FROM login_tokens t JOIN utenti u ON u.id = t.user_id
+		WHERE t.token = ?
+	`, token).Scan(&userID, &email, &nome, &ruolo, &expiresAt, &usedAt)
 
 	if err == sql.ErrNoRows {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		templates.LoginPage("Credenziali non valide").Render(r.Context(), w)
+		templates.LoginPage("Link non valido. Richiedi un nuovo accesso.").Render(r.Context(), w)
 		return
 	}
 	if err != nil {
+		log.Printf("[auth] verify lookup error: %v", err)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		templates.LoginPage("Errore nel caricamento utente").Render(r.Context(), w)
+		templates.LoginPage("Errore interno, riprova più tardi").Render(r.Context(), w)
 		return
 	}
 
-	// Compare password hash
-	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
+	if usedAt.Valid {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		templates.LoginPage("Credenziali non valide").Render(r.Context(), w)
+		templates.LoginPage("Link già utilizzato. Richiedi un nuovo accesso.").Render(r.Context(), w)
+		return
+	}
+	if time.Now().After(expiresAt) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Link scaduto. Richiedi un nuovo accesso.").Render(r.Context(), w)
+		return
+	}
+
+	// Consume the token
+	if _, err := h.DB.Exec(`UPDATE login_tokens SET used_at = CURRENT_TIMESTAMP WHERE token = ?`, token); err != nil {
+		log.Printf("[auth] verify consume error: %v", err)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		templates.LoginPage("Errore interno, riprova più tardi").Render(r.Context(), w)
 		return
 	}
 
 	// Create session
-	session, err := store.Get(r, "auth")
+	session, err := store.Get(r, sessionName)
 	if err != nil {
+		log.Printf("[auth] session get error: %v", err)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		templates.LoginPage("Errore nella creazione della sessione").Render(r.Context(), w)
 		return
 	}
-
 	session.Values["user_id"] = userID
-	session.Values["username"] = username
+	session.Values["email"] = email
 	session.Values["nome"] = nome
-
-	err = session.Save(r, w)
-	if err != nil {
+	session.Values["ruolo"] = ruolo
+	if err := session.Save(r, w); err != nil {
+		log.Printf("[auth] session save error: %v", err)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		templates.LoginPage("Errore nel salvataggio della sessione").Render(r.Context(), w)
 		return
@@ -92,42 +185,78 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// Logout handles POST /logout
+// Logout handles POST /logout (and GET /logout for convenience).
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "auth")
+	session, err := store.Get(r, sessionName)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
 	session.Options.MaxAge = -1
-	session.Save(r, w)
-
+	_ = session.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// RequireAuth is middleware that checks for authentication
+// RequireAuth is middleware that checks for authentication.
 func (h *Handler) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, err := store.Get(r, "auth")
+		session, err := store.Get(r, sessionName)
 		if err != nil || session.IsNew {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
 		userID, ok := session.Values["user_id"]
 		if !ok || userID == nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
 		next.ServeHTTP(w, r)
 	})
 }
 
+// WithUserContext threads the current session user's role onto the request
+// context so templates can branch on it (e.g. show admin nav items).
+// Must be installed after RequireAuth in the middleware chain.
+func (h *Handler) WithUserContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := store.Get(r, sessionName)
+		if err == nil && !session.IsNew {
+			if ruolo, ok := session.Values["ruolo"].(string); ok && ruolo != "" {
+				r = r.WithContext(templates.WithRole(r.Context(), ruolo))
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RequireAdmin is middleware that requires the current session user to have
+// the 'admin' role. Must be used after RequireAuth.
+func (h *Handler) RequireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isAdmin(r) {
+			http.Error(w, "Accesso negato: richiesti privilegi di amministratore", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// isAdmin reports whether the current request's session belongs to an admin.
+func isAdmin(r *http.Request) bool {
+	session, err := store.Get(r, sessionName)
+	if err != nil || session.IsNew {
+		return false
+	}
+	ruolo, _ := session.Values["ruolo"].(string)
+	return ruolo == "admin"
+}
+
+// IsAdmin exposes the session admin check to templates via the handler.
+func (h *Handler) IsAdmin(r *http.Request) bool { return isAdmin(r) }
+
 // Dashboard handles GET /
 func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
-	session, err := store.Get(r, "auth")
+	session, err := store.Get(r, sessionName)
 	if err != nil || session.IsNew {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
@@ -135,35 +264,28 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	stats := map[string]interface{}{}
 
-	// Total soci
 	var totalSoci int
 	h.DB.QueryRow("SELECT COUNT(*) FROM soci").Scan(&totalSoci)
 	stats["total_soci"] = totalSoci
 
-	// Tessere in scadenza (prossimi 30 giorni)
 	var tessereScadenza int
 	h.DB.QueryRow("SELECT COUNT(*) FROM tessere WHERE valida_fino BETWEEN date('now') AND date('now', '+30 days')").Scan(&tessereScadenza)
 	stats["tessere_scadenza"] = tessereScadenza
 
-	// Lezioni prossime
 	var lezioniProssime int
 	h.DB.QueryRow("SELECT COUNT(*) FROM lezioni WHERE data_ora > datetime('now')").Scan(&lezioniProssime)
 	stats["lezioni_prossime"] = lezioniProssime
 
-	// Articoli bar sotto soglia
 	var inventoryWarning int
 	h.DB.QueryRow("SELECT COUNT(*) FROM bar_items WHERE quantita <= soglia_min").Scan(&inventoryWarning)
 	stats["inventory_warning"] = inventoryWarning
 
-	// Incasso oggi - eventi
 	var incassoEventi float64
 	h.DB.QueryRow("SELECT COALESCE(SUM(importo), 0) FROM ingressi_milonga WHERE date(timestamp) = date('now')").Scan(&incassoEventi)
 
-	// Incasso oggi - tessere pagate oggi
 	var incassoTessere float64
 	h.DB.QueryRow("SELECT COALESCE(SUM(importo), 0) FROM tessere WHERE date(updated_at) = date('now') AND pagato = 1").Scan(&incassoTessere)
 
-	// Incasso oggi - bar vendite (delta negativo = vendita)
 	var incassoBar float64
 	h.DB.QueryRow(`SELECT COALESCE(SUM(ABS(m.delta) * b.prezzo), 0)
 		FROM bar_movimenti m JOIN bar_items b ON m.item_id = b.id
@@ -173,4 +295,13 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	renderTempl(w, r, templates.Page("Dashboard", "dashboard", templates.DashboardPage(stats)))
+}
+
+// newToken returns a URL-safe random token.
+func newToken() (string, error) {
+	b := make([]byte, tokenBytes)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }

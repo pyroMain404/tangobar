@@ -9,6 +9,15 @@ services:
       SESSION_KEY: ${SESSION_KEY:-cambia-questa-chiave}
       DB_PATH: /app/data/gestionale.db
       PDF_PATH: /app/data/pdf
+      # Magic-link login
+      APP_URL: ${APP_URL:-https://tb.gcoding.it}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@tangobar.local}
+      # SMTP (lasciare vuoto per fallback su log stdout)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-}
     volumes:
       - ./data:/app/data
     ports:

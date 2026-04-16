@@ -852,6 +852,15 @@ templ Layout(title string, activePage string) {
 						</a>
 					</div>
 
+					if IsAdminCtx(ctx) {
+						<div class="nav-group">
+							<div class="nav-group-title">Amministrazione</div>
+							<a href="/admin/utenti" class={ "nav-link", templ.KV("active", activePage == "admin-utenti") }>
+								<span class="numeral">✦</span> Utenti
+							</a>
+						</div>
+					}
+
 					<div class="sidebar-footer">
 						Ars Tango · Est. MMXXV
 						<a href="/logout">Disconnetti ⟶</a>

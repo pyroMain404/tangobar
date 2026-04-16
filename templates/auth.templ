@@ -22,32 +22,55 @@ templ LoginPage(errMsg string) {
 				<div class="auth-error" role="alert">{ errMsg }</div>
 			}
 
+			<p style="text-align:center;color:#888;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 28px;">
+				Inserisci la tua email. Ti invieremo un link di accesso.
+			</p>
+
 			<form method="POST" action="/login" autocomplete="on">
 				<div class="auth-field">
-					<label for="username">Utente</label>
+					<label for="email">Email</label>
 					<input
-						type="text"
-						id="username"
-						name="username"
-						placeholder="Inserisci username"
+						type="email"
+						id="email"
+						name="email"
+						placeholder="nome@dominio.it"
 						required
 						autofocus
-						autocomplete="username"
+						autocomplete="email"
+						inputmode="email"
 					/>
 				</div>
-				<div class="auth-field">
-					<label for="password">Password</label>
-					<input
-						type="password"
-						id="password"
-						name="password"
-						placeholder="Inserisci password"
-						required
-						autocomplete="current-password"
-					/>
-				</div>
-				<button type="submit" class="auth-submit">Accedi ⟶</button>
+				<button type="submit" class="auth-submit">Invia link ⟶</button>
 			</form>
+
+			<div class="auth-footer">Ars Tango · Est. MMXXV</div>
+		</div>
+	}
+}
+
+templ LoginLinkSent(email string) {
+	@AuthLayout("Controlla la tua casella") {
+		<div class="auth-frame">
+			<span class="corner tl" aria-hidden="true"></span>
+			<span class="corner tr" aria-hidden="true"></span>
+			<span class="corner bl" aria-hidden="true"></span>
+			<span class="corner br" aria-hidden="true"></span>
+
+			<div class="auth-brand">
+				<div class="auth-diamond" aria-hidden="true"><span>✉</span></div>
+				<h1 class="auth-title" style="font-size:24px;">Link Inviato</h1>
+				<div class="auth-rule"><span>Verifica La Posta</span></div>
+			</div>
+
+			<p style="text-align:center;color:#F2F0E4;font-size:15px;line-height:1.7;margin:0 0 20px;">
+				Se l'indirizzo <strong style="color:#D4AF37;letter-spacing:0.05em;">{ email }</strong> è autorizzato,
+				riceverai a breve un'email con il link per accedere.
+			</p>
+			<p style="text-align:center;color:#888;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 28px;">
+				Il link è valido per 15 minuti
+			</p>
+
+			<a href="/login" class="auth-submit" style="text-decoration:none;">⟵ Torna indietro</a>
 
 			<div class="auth-footer">Ars Tango · Est. MMXXV</div>
 		</div>
