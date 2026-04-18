@@ -3,28 +3,25 @@ package models
 import "time"
 
 type Lezione struct {
-	ID         int64
-	Titolo     string
-	Insegnante string
-	DataOra    time.Time
-	DurataMin  int
-	MaxPosti   *int
-	Prezzo     float64
-	Iscritti   int
+	ID        int
+	CorsoID   int
+	Data      time.Time
+	Ora       string
+	DurataMin int
+	MaxPosti  int
+	Prezzo    float64
+	Stato     string // "programmata" | "completata" | "annullata"
+	Nota      string
+	Presenti  int // count join
 }
 
-type Iscrizione struct {
-	ID             int64
-	SocioID        int64
-	LezioneID      int64
-	Pagato         bool
-	NomeSocio      string
-	CognomeSocio   string
-	LezioneTitolo  string
-	DataLezione    time.Time
-	OraLezione     time.Time
-	InsegnanteName string
-	DataIscrizione time.Time
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+type Presenza struct {
+	ID            int
+	SocioID       int
+	LezioneID     int
+	SegnataDa     int
+	Timestamp     time.Time
+	NomeSocio     string
+	CognomeSocio  string
+	NomeOperatore string
 }

@@ -6,6 +6,6 @@ type Utente struct {
 	ID       int
 	Email    string
 	Nome     string
-	Ruolo    string // "admin" | "staff"
+	Ruolo    string // "admin" | "staff" | "maestro"
 	CreatoIl time.Time
 }
