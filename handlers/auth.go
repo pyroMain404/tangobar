@@ -273,7 +273,7 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 	stats["tessere_scadenza"] = tessereScadenza
 
 	var lezioniProssime int
-	h.DB.QueryRow("SELECT COUNT(*) FROM lezioni WHERE data_ora > datetime('now')").Scan(&lezioniProssime)
+	h.DB.QueryRow("SELECT COUNT(*) FROM lezioni WHERE data >= date('now') AND stato = 'programmata'").Scan(&lezioniProssime)
 	stats["lezioni_prossime"] = lezioniProssime
 
 	var inventoryWarning int
@@ -295,6 +295,45 @@ func (h *Handler) Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	renderTempl(w, r, templates.Page("Dashboard", "dashboard", templates.DashboardPage(stats)))
+}
+
+// RequireStaffOrAbove è middleware che richiede ruolo admin o staff.
+func (h *Handler) RequireStaffOrAbove(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !isStaffOrAbove(r) {
+			http.Error(w, "Accesso negato: richiesti privilegi staff o superiori", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isStaffOrAbove(r *http.Request) bool {
+	session, err := store.Get(r, sessionName)
+	if err != nil || session.IsNew {
+		return false
+	}
+	ruolo, _ := session.Values["ruolo"].(string)
+	return ruolo == "admin" || ruolo == "staff"
+}
+
+// userIDFromRequest estrae l'ID utente dalla sessione corrente.
+func userIDFromRequest(r *http.Request) (int, bool) {
+	session, err := store.Get(r, sessionName)
+	if err != nil || session.IsNew {
+		return 0, false
+	}
+	id, ok := session.Values["user_id"]
+	if !ok {
+		return 0, false
+	}
+	switch v := id.(type) {
+	case int:
+		return v, true
+	case int64:
+		return int(v), true
+	}
+	return 0, false
 }
 
 // newToken returns a URL-safe random token.

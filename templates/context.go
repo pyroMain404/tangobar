@@ -27,3 +27,8 @@ func RoleFromContext(ctx context.Context) string {
 func IsAdminCtx(ctx context.Context) bool {
 	return RoleFromContext(ctx) == "admin"
 }
+
+// IsMaestroCtx reports whether the context carries a maestro role.
+func IsMaestroCtx(ctx context.Context) bool {
+	return RoleFromContext(ctx) == "maestro"
+}
