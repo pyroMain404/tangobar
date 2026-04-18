@@ -21,23 +21,66 @@ CREATE TABLE IF NOT EXISTS tessere (
     importo REAL NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS lezioni (
+CREATE TABLE IF NOT EXISTS corsi (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     titolo TEXT NOT NULL,
-    insegnante TEXT NOT NULL,
-    data_ora DATETIME NOT NULL,
-    durata_min INTEGER DEFAULT 60,
+    giorno_settimana INTEGER NOT NULL CHECK(giorno_settimana BETWEEN 0 AND 6),
+    ora TEXT NOT NULL,
+    durata_min INTEGER NOT NULL DEFAULT 60,
     max_posti INTEGER NOT NULL,
-    prezzo REAL DEFAULT 0
+    prezzo_lezione REAL NOT NULL DEFAULT 0,
+    maestro_id INTEGER REFERENCES utenti(id) ON DELETE SET NULL,
+    data_inizio DATE NOT NULL,
+    data_fine DATE NOT NULL,
+    eta_max_giovani INTEGER,
+    prezzo_giovani REAL,
+    attivo BOOLEAN NOT NULL DEFAULT TRUE,
+    creato_il DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS iscrizioni_lezione (
+CREATE TABLE IF NOT EXISTS lezioni (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    socio_id INTEGER NOT NULL REFERENCES soci(id),
-    lezione_id INTEGER NOT NULL REFERENCES lezioni(id),
-    pagato BOOLEAN DEFAULT FALSE,
+    corso_id INTEGER NOT NULL REFERENCES corsi(id) ON DELETE CASCADE,
+    data DATE NOT NULL,
+    ora TEXT NOT NULL,
+    durata_min INTEGER NOT NULL DEFAULT 60,
+    max_posti INTEGER NOT NULL,
+    prezzo REAL NOT NULL DEFAULT 0,
+    stato TEXT NOT NULL DEFAULT 'programmata' CHECK(stato IN ('programmata', 'completata', 'annullata')),
+    nota TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_lezioni_corso ON lezioni(corso_id);
+CREATE INDEX IF NOT EXISTS idx_lezioni_data ON lezioni(data);
+
+CREATE TABLE IF NOT EXISTS iscrizioni_corso (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    socio_id INTEGER NOT NULL REFERENCES soci(id) ON DELETE CASCADE,
+    corso_id INTEGER NOT NULL REFERENCES corsi(id) ON DELETE CASCADE,
+    prezzo_custom REAL,
+    sconto_giovani_forzato BOOLEAN,
+    creato_il DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(socio_id, corso_id)
+);
+
+CREATE TABLE IF NOT EXISTS presenze (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    socio_id INTEGER NOT NULL REFERENCES soci(id) ON DELETE CASCADE,
+    lezione_id INTEGER NOT NULL REFERENCES lezioni(id) ON DELETE CASCADE,
+    segnata_da INTEGER NOT NULL REFERENCES utenti(id),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(socio_id, lezione_id)
 );
+CREATE INDEX IF NOT EXISTS idx_presenze_lezione ON presenze(lezione_id);
+
+CREATE TABLE IF NOT EXISTS millesimi (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    maestro_id INTEGER NOT NULL REFERENCES utenti(id) ON DELETE CASCADE,
+    socio_id INTEGER NOT NULL REFERENCES soci(id) ON DELETE CASCADE,
+    voto INTEGER NOT NULL CHECK(voto BETWEEN 0 AND 1000),
+    aggiornato_il DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(maestro_id, socio_id)
+);
+CREATE INDEX IF NOT EXISTS idx_millesimi_maestro ON millesimi(maestro_id);
 
 CREATE TABLE IF NOT EXISTS eventi (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +141,7 @@ CREATE TABLE IF NOT EXISTS utenti (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT UNIQUE NOT NULL,
     nome TEXT NOT NULL,
-    ruolo TEXT NOT NULL DEFAULT 'staff' CHECK(ruolo IN ('admin', 'staff')),
+    ruolo TEXT NOT NULL DEFAULT 'staff' CHECK(ruolo IN ('admin', 'staff', 'maestro')),
     creato_il DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
