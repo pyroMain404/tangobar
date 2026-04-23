@@ -16,7 +16,6 @@ import (
 func main() {
 	// ----- Environment -----
 	dbPath := env("DB_PATH", "./data/gestionale.db")
-	pdfPath := env("PDF_PATH", "./data/pdf")
 	sessionKey := env("SESSION_KEY", "cambia-questa-chiave")
 	port := env("PORT", "8080")
 
@@ -39,10 +38,6 @@ func main() {
 	if err := os.MkdirAll("./data", 0755); err != nil {
 		log.Fatalf("Failed to create data directory: %v", err)
 	}
-	if err := os.MkdirAll(pdfPath, 0755); err != nil {
-		log.Fatalf("Failed to create pdf directory: %v", err)
-	}
-
 	// ----- DB -----
 	database, err := db.InitDB(dbPath)
 	if err != nil {
@@ -81,80 +76,6 @@ func main() {
 		r.Get("/", h.Dashboard)
 		r.Post("/logout", h.Logout)
 		r.Get("/logout", h.Logout)
-
-		// Soci
-		r.Get("/soci", h.ListaSoci)
-		r.Get("/soci/cerca", h.CercaSoci)
-		r.Get("/soci/nuovo", h.NuovoSocioForm)
-		r.Post("/soci", h.CreaSocio)
-		r.Get("/soci/{id}", h.DettaglioSocio)
-		r.Get("/soci/{id}/modifica", h.ModificaSocioForm)
-		r.Put("/soci/{id}", h.AggiornaSocio)
-		r.Delete("/soci/{id}", h.EliminaSocio)
-
-		// Tessere
-		r.Get("/tessere", h.ListaTessere)
-		r.Get("/tessere/nuova", h.NuovaTesseraForm)
-		r.Post("/tessere", h.CreaTessera)
-		r.Get("/tessere/{id}/rinnova", h.RinnovaTesseraForm)
-		r.Post("/tessere/{id}/rinnova", h.RinnovaTessera)
-		r.Post("/tessere/{id}/pagato", h.TogglePagatoTessera)
-		r.Get("/tessere/{id}/pdf", h.StampaTessera)
-
-		// Lezioni
-		r.Get("/lezioni", h.ListaLezioni)
-		r.Get("/lezioni/nuova", h.NuovaLezioneForm)
-		r.Post("/lezioni", h.CreaLezione)
-		r.Get("/lezioni/{id}", h.DettaglioLezione)
-		r.Get("/lezioni/{id}/modifica", h.ModificaLezioneForm)
-		r.Put("/lezioni/{id}", h.AggiornaLezione)
-		r.Delete("/lezioni/{id}", h.EliminaLezione)
-		r.Get("/lezioni/{id}/iscrizioni/nuova", h.FormIscrizione)
-		r.Post("/lezioni/{id}/iscrizioni", h.AggiungiIscrizione)
-		r.Delete("/lezioni/{lezioneID}/iscrizioni/{iscrizioneID}", h.RimuoviIscrizione)
-
-		// Eventi
-		r.Get("/eventi", h.ListaEventi)
-		r.Get("/eventi/nuovo", h.NuovoEventoForm)
-		r.Post("/eventi", h.CreaEvento)
-		r.Get("/eventi/{id}", h.DettaglioEvento)
-		r.Get("/eventi/{id}/modifica", h.ModificaEventoForm)
-		r.Put("/eventi/{id}", h.AggiornaEvento)
-		r.Delete("/eventi/{id}", h.EliminaEvento)
-
-		// Milonga
-		r.Get("/milonga/cerca", h.CercaSociMilonga)
-		r.Post("/milonga/ingresso/{socioID}", h.RegistraIngresso)
-		r.Post("/milonga/ingresso-ospite", h.RegistraIngressoOspite)
-
-		// Fatture
-		r.Get("/fatture", h.ListaFatture)
-		r.Get("/fatture/nuova", h.NuovaFatturaForm)
-		r.Post("/fatture", h.CreaFattura)
-		r.Get("/fatture/{id}", h.DettaglioFattura)
-		r.Post("/fatture/{id}/pagata", h.TogglePagataFattura)
-		r.Get("/fatture/{id}/pdf", h.DownloadFatturaPDF)
-
-		// Bar
-		r.Get("/bar", h.ListaBar)
-		r.Get("/bar/tabella", h.BarTabellaPartial)
-		r.Get("/bar/nuovo", h.NuovoBarItemForm)
-		r.Post("/bar", h.CreaBarItem)
-		r.Get("/bar/{id}/modifica", h.ModificaBarItemForm)
-		r.Put("/bar/{id}", h.AggiornaBarItem)
-		r.Post("/bar/{id}/movimento", h.RegistraMovimento)
-		r.Get("/bar/{id}/movimenti", h.StoricoMovimenti)
-
-		// Admin-only
-		r.Group(func(r chi.Router) {
-			r.Use(h.RequireAdmin)
-
-			r.Get("/admin/utenti", h.ListaUtenti)
-			r.Get("/admin/utenti/nuovo", h.NuovoUtenteForm)
-			r.Post("/admin/utenti", h.CreaUtente)
-			r.Post("/admin/utenti/{id}/ruolo", h.CambiaRuoloUtente)
-			r.Delete("/admin/utenti/{id}", h.EliminaUtente)
-		})
 	})
 
 	log.Printf("Starting server on :%s (APP_URL=%s)", port, appURL)

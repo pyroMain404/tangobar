@@ -1,300 +1,64 @@
 package templates
 
-import (
-	"fmt"
-)
+templ AuthLayout(title string) {
+	<!DOCTYPE html>
+	<html lang="it">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } · TangoBar</title>
+			<style>
+				*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+				body { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+			</style>
+		</head>
+		<body>
+			{ children... }
+		</body>
+	</html>
+}
 
 templ LoginPage(errMsg string) {
 	@AuthLayout("Accesso") {
-		<div class="auth-frame">
-			<span class="corner tl" aria-hidden="true"></span>
-			<span class="corner tr" aria-hidden="true"></span>
-			<span class="corner bl" aria-hidden="true"></span>
-			<span class="corner br" aria-hidden="true"></span>
-
-			<div class="auth-brand">
-				<div class="auth-diamond" aria-hidden="true"><span>T</span></div>
-				<h1 class="auth-title">TangoBar</h1>
-				<div class="auth-rule"><span>MCMXXV · Gestionale</span></div>
-			</div>
-
+		<div>
+			<h1>TangoBar</h1>
+			<p>Inserisci la tua email. Ti invieremo un link di accesso.</p>
 			if errMsg != "" {
-				<div class="auth-error" role="alert">{ errMsg }</div>
+				<p role="alert">{ errMsg }</p>
 			}
-
-			<p style="text-align:center;color:#888;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 28px;">
-				Inserisci la tua email. Ti invieremo un link di accesso.
-			</p>
-
-			<form method="POST" action="/login" autocomplete="on">
-				<div class="auth-field">
-					<label for="email">Email</label>
-					<input
-						type="email"
-						id="email"
-						name="email"
-						placeholder="nome@dominio.it"
-						required
-						autofocus
-						autocomplete="email"
-						inputmode="email"
-					/>
-				</div>
-				<button type="submit" class="auth-submit">Invia link ⟶</button>
+			<form method="POST" action="/login">
+				<label for="email">Email</label>
+				<input
+					type="email"
+					id="email"
+					name="email"
+					required
+					autofocus
+					autocomplete="email"
+					inputmode="email"
+				/>
+				<button type="submit">Invia link</button>
 			</form>
-
-			<div class="auth-footer">Ars Tango · Est. MMXXV</div>
 		</div>
 	}
 }
 
 templ LoginLinkSent(email string) {
-	@AuthLayout("Controlla la tua casella") {
-		<div class="auth-frame">
-			<span class="corner tl" aria-hidden="true"></span>
-			<span class="corner tr" aria-hidden="true"></span>
-			<span class="corner bl" aria-hidden="true"></span>
-			<span class="corner br" aria-hidden="true"></span>
-
-			<div class="auth-brand">
-				<div class="auth-diamond" aria-hidden="true"><span>✉</span></div>
-				<h1 class="auth-title" style="font-size:24px;">Link Inviato</h1>
-				<div class="auth-rule"><span>Verifica La Posta</span></div>
-			</div>
-
-			<p style="text-align:center;color:#F2F0E4;font-size:15px;line-height:1.7;margin:0 0 20px;">
-				Se l'indirizzo <strong style="color:#D4AF37;letter-spacing:0.05em;">{ email }</strong> è autorizzato,
-				riceverai a breve un'email con il link per accedere.
+	@AuthLayout("Controlla la posta") {
+		<div>
+			<h1>Link inviato</h1>
+			<p>
+				Se l'indirizzo <strong>{ email }</strong> è autorizzato,
+				riceverai a breve un link per accedere. Valido 15 minuti.
 			</p>
-			<p style="text-align:center;color:#888;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;margin:0 0 28px;">
-				Il link è valido per 15 minuti
-			</p>
-
-			<a href="/login" class="auth-submit" style="text-decoration:none;">⟵ Torna indietro</a>
-
-			<div class="auth-footer">Ars Tango · Est. MMXXV</div>
+			<a href="/login">Torna indietro</a>
 		</div>
 	}
 }
 
-templ DashboardPage(stats map[string]interface{}) {
-	<div class="container mx-auto px-4 py-12">
-		<!-- Welcome section -->
-		<div class="mb-12">
-			<div class="relative">
-				<div class="absolute inset-0 bg-gradient-to-r from-gold via-transparent to-gold-light h-1"></div>
-				<h1 class="text-5xl font-black text-dark-navy mb-2 tracking-wider">TANGOBAR</h1>
-				<div class="flex items-center gap-3 mt-4 mb-8">
-					<div class="h-1 w-12 bg-gold"></div>
-					<p class="text-gold-light font-semibold uppercase text-sm tracking-widest">Gestionale Scolastico</p>
-					<div class="h-1 w-12 bg-gold"></div>
-				</div>
-			</div>
-			<p class="text-gray-700 text-lg">Benvenuto nel sistema di gestione della scuola di tango</p>
-		</div>
-
-		<!-- Incasso Oggi -->
-		<div class="bg-gradient-to-r from-green-600 to-green-700 rounded-lg shadow-lg p-6 mb-8">
-			<div class="flex items-center justify-between">
-				<div>
-					<p class="text-green-100 text-sm uppercase font-semibold tracking-wide">Incasso Oggi</p>
-					<p class="text-5xl font-black text-white mt-2">
-						if incasso, ok := stats["incasso_oggi"].(float64); ok {
-							{ fmt.Sprintf("\u20ac %.2f", incasso) }
-						} else {
-							{ "\u20ac 0.00" }
-						}
-					</p>
-				</div>
-				<div class="bg-green-500 bg-opacity-30 p-4 rounded-lg">
-					<svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-						<path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-					</svg>
-				</div>
-			</div>
-		</div>
-
-		<!-- Quick stats grid -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-			<!-- Soci card -->
-			<div class="bg-white rounded-lg shadow-lg border-t-4 border-gold p-6 hover:shadow-xl transition">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Soci</p>
-						<p class="text-4xl font-black text-dark-navy mt-2">
-							if count, ok := stats["total_soci"].(int); ok {
-								{ fmt.Sprint(count) }
-							}
-						</p>
-					</div>
-					<div class="bg-light-gold p-4 rounded-lg">
-						<svg class="w-8 h-8 text-gold" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-						</svg>
-					</div>
-				</div>
-			</div>
-
-			<!-- Tessere in scadenza card -->
-			<div class="bg-white rounded-lg shadow-lg border-t-4 border-red-500 p-6 hover:shadow-xl transition">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Tessere Scadenza</p>
-						<p class="text-4xl font-black text-red-600 mt-2">
-							if count, ok := stats["tessere_scadenza"].(int); ok {
-								{ fmt.Sprint(count) }
-							}
-						</p>
-					</div>
-					<div class="bg-red-50 p-4 rounded-lg">
-						<svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-						</svg>
-					</div>
-				</div>
-			</div>
-
-			<!-- Prossime lezioni card -->
-			<div class="bg-white rounded-lg shadow-lg border-t-4 border-blue-500 p-6 hover:shadow-xl transition">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Lezioni Prossime</p>
-						<p class="text-4xl font-black text-blue-600 mt-2">
-							if count, ok := stats["lezioni_prossime"].(int); ok {
-								{ fmt.Sprint(count) }
-							}
-						</p>
-					</div>
-					<div class="bg-blue-50 p-4 rounded-lg">
-						<svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7h-3V9h3v3zm4 0h-3V9h3v3zM8 9v3H5V9h3z"/>
-						</svg>
-					</div>
-				</div>
-			</div>
-
-			<!-- Inventory status card -->
-			<div class="bg-white rounded-lg shadow-lg border-t-4 border-amber-500 p-6 hover:shadow-xl transition">
-				<div class="flex items-center justify-between">
-					<div>
-						<p class="text-gray-600 text-sm uppercase font-semibold tracking-wide">Magazzino Basso</p>
-						<p class="text-4xl font-black text-amber-600 mt-2">
-							if count, ok := stats["inventory_warning"].(int); ok {
-								{ fmt.Sprint(count) }
-							}
-						</p>
-					</div>
-					<div class="bg-amber-50 p-4 rounded-lg">
-						<svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M21 16v-5h-3V4c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v7H3v5h2v5c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-5h2zm-5-10H8V5h8v1z"/>
-						</svg>
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Quick links section -->
-		<div class="mb-12">
-			<h2 class="text-2xl font-bold text-dark-navy mb-6 flex items-center gap-3">
-				<div class="w-2 h-8 bg-gold"></div>
-				Accesso Rapido
-			</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-				<!-- Soci link -->
-				<a href="/soci" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-gold p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-light-gold p-3 rounded-lg">
-							<svg class="w-6 h-6 text-gold" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Soci</h3>
-							<p class="text-sm text-gray-600">Gestisci i soci</p>
-						</div>
-					</div>
-				</a>
-
-				<!-- Lezioni link -->
-				<a href="/lezioni" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-blue-500 p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-blue-50 p-3 rounded-lg">
-							<svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7h-3V9h3v3zm4 0h-3V9h3v3zM8 9v3H5V9h3z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Lezioni</h3>
-							<p class="text-sm text-gray-600">Pianifica le lezioni</p>
-						</div>
-					</div>
-				</a>
-
-				<!-- Fatture link -->
-				<a href="/fatture" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-green-500 p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-green-50 p-3 rounded-lg">
-							<svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Fatture</h3>
-							<p class="text-sm text-gray-600">Gestisci le fatture</p>
-						</div>
-					</div>
-				</a>
-
-				<!-- Bar link -->
-				<a href="/bar" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-amber-500 p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-amber-50 p-3 rounded-lg">
-							<svg class="w-6 h-6 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M21 16v-5h-3V4c0-.55-.45-1-1-1H7c-.55 0-1 .45-1 1v7H3v5h2v5c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-5h2zm-5-10H8V5h8v1z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Inventario Bar</h3>
-							<p class="text-sm text-gray-600">Gestisci il magazzino</p>
-						</div>
-					</div>
-				</a>
-
-				<!-- Tessere link -->
-				<a href="/tessere" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-purple-500 p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-purple-50 p-3 rounded-lg">
-							<svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M21 5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5zm-2 0H5v4h14V5zm0 14H5v-8h14v8z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Tessere</h3>
-							<p class="text-sm text-gray-600">Gestisci le tessere</p>
-						</div>
-					</div>
-				</a>
-
-				<!-- Eventi link -->
-				<a href="/eventi" class="bg-white rounded-lg shadow-md hover:shadow-lg border-l-4 border-red-500 p-6 transition transform hover:-translate-y-1">
-					<div class="flex items-center gap-4">
-						<div class="bg-red-50 p-3 rounded-lg">
-							<svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
-								<path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>
-							</svg>
-						</div>
-						<div>
-							<h3 class="font-bold text-dark-navy">Eventi</h3>
-							<p class="text-sm text-gray-600">Milonghe e serate</p>
-						</div>
-					</div>
-				</a>
-			</div>
-		</div>
-
-		<!-- Footer decorative element -->
-		<div class="border-t-2 border-gold pt-8 text-center">
-			<p class="text-gray-600 text-sm uppercase tracking-widest">Sistema di Gestione TangoBar</p>
-		</div>
-	</div>
+templ DashboardPage() {
+	<p>Accesso effettuato.</p>
+	<form method="POST" action="/logout">
+		<button type="submit">Esci</button>
+	</form>
 }
