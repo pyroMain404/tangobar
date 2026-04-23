@@ -1,3 +1,30 @@
+# env
 .env
 *.env
+
+# Go
+/tango-gestionale
+/tangobar
+*.test
+*.out
+*.prof
+
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# templ generated
+*_templ.go
+
+# data runtime
 data/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Claude Code local config
+.claude/settings.local.json
