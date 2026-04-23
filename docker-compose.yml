@@ -12,12 +12,16 @@ services:
       # Magic-link login
       APP_URL: ${APP_URL:-https://tb.gcoding.it}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@tangobar.local}
-      # SMTP (lasciare vuoto per fallback su log stdout)
-      SMTP_HOST: ${SMTP_HOST:-}
+      # SMTP — Brevo (smtp-relay.brevo.com)
+      # Credenziali: Brevo → Settings → SMTP & API → SMTP
+      # SMTP_USER = email account Brevo
+      # SMTP_PASS = chiave SMTP generata dalla dashboard
+      SMTP_HOST: smtp-relay.brevo.com
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@tb.gcoding.it}
+      MAIL_LOGIN_SUBJECT: ${MAIL_LOGIN_SUBJECT:-TangoBar · Accesso}
     volumes:
       - ./data:/app/data
     ports:
