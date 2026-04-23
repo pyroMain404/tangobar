@@ -11,11 +11,12 @@ import (
 // back to logging a loud banner with the message to stdout so development
 // and bootstrap scenarios still work end-to-end.
 type Mailer struct {
-	Host string
-	Port string
-	User string
-	Pass string
-	From string
+	Host         string
+	Port         string
+	User         string
+	Pass         string
+	From         string
+	LoginSubject string
 }
 
 // Configured reports whether SMTP credentials are available.
@@ -25,7 +26,7 @@ func (m *Mailer) Configured() bool {
 
 // SendLoginLink sends the magic-link email to the given address.
 func (m *Mailer) SendLoginLink(to, link string) error {
-	subject := "TangoBar · Accesso"
+	subject := m.LoginSubject
 	body := buildLoginBody(link)
 
 	if !m.Configured() {
