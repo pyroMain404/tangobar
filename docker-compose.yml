@@ -16,6 +16,7 @@ services:
       # Credenziali: Brevo → Settings → SMTP & API → SMTP
       # SMTP_USER = email account Brevo
       # SMTP_PASS = chiave SMTP generata dalla dashboard
+      # Popolare SMTP_USER e SMTP_PASS in un file .env locale (non committare mai)
       SMTP_HOST: smtp-relay.brevo.com
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
