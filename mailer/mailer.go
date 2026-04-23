@@ -27,6 +27,9 @@ func (m *Mailer) Configured() bool {
 // SendLoginLink sends the magic-link email to the given address.
 func (m *Mailer) SendLoginLink(to, link string) error {
 	subject := m.LoginSubject
+	if subject == "" {
+		subject = "TangoBar · Accesso"
+	}
 	body := buildLoginBody(link)
 
 	if !m.Configured() {
