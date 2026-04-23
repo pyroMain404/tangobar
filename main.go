@@ -24,11 +24,12 @@ func main() {
 	adminEmail := env("ADMIN_EMAIL", "admin@tangobar.local")
 
 	m := &mailer.Mailer{
-		Host: os.Getenv("SMTP_HOST"),
-		Port: env("SMTP_PORT", "587"),
-		User: os.Getenv("SMTP_USER"),
-		Pass: os.Getenv("SMTP_PASS"),
-		From: env("SMTP_FROM", adminEmail),
+		Host:         os.Getenv("SMTP_HOST"),
+		Port:         env("SMTP_PORT", "587"),
+		User:         os.Getenv("SMTP_USER"),
+		Pass:         os.Getenv("SMTP_PASS"),
+		From:         env("SMTP_FROM", "no-reply@tb.gcoding.it"),
+		LoginSubject: env("MAIL_LOGIN_SUBJECT", "TangoBar · Accesso"),
 	}
 	if !m.Configured() {
 		log.Printf("[mailer] SMTP non configurato — i link di accesso saranno stampati su stdout.")
